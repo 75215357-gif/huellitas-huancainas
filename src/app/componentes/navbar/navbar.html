@@ -1,0 +1,41 @@
+<nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top">
+  <div class="container">
+
+    <!-- Logo -->
+    <a class="navbar-brand fw-bold" routerLink="/">🐾 Huellitas Huancaínas</a>
+
+    <!-- Botón hamburguesa (celular) -->
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#menuPrincipal"
+            aria-controls="menuPrincipal" aria-expanded="false"
+            aria-label="Abrir menú">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Enlaces -->
+    <div class="collapse navbar-collapse" id="menuPrincipal">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/" routerLinkActive="active"
+             [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Animales</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Cómo funciona</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Denunciar</a>
+        </li>
+      </ul>
+
+      <!-- Botones de sesión -->
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-dark">Iniciar sesión</button>
+        <button class="btn btn-warning">Registrarse</button>
+      </div>
+    </div>
+
+  </div>
+</nav>
