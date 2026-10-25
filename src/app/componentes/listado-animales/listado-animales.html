@@ -1,0 +1,81 @@
+<section class="bg-warning-subtle py-4">
+  <div class="container">
+    <h1 class="h2 fw-bold mb-1">Animales en adopción</h1>
+    <p class="mb-0 text-muted">Encuentra a tu nuevo compañero en Huancayo.</p>
+  </div>
+</section>
+
+<section class="py-4">
+  <div class="container">
+
+    <!-- Filtros -->
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-md-4">
+        <input type="text" class="form-control" placeholder="Buscar por nombre..."
+               [value]="busqueda()"
+               (input)="busqueda.set($any($event.target).value)">
+      </div>
+      <div class="col-6 col-md-3">
+        <select class="form-select"
+                [value]="filtroEspecie()"
+                (change)="filtroEspecie.set($any($event.target).value)">
+          <option value="">Todas las especies</option>
+          <option value="Perro">Perros</option>
+          <option value="Gato">Gatos</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <select class="form-select"
+                [value]="filtroTamano()"
+                (change)="filtroTamano.set($any($event.target).value)">
+          <option value="">Todos los tamaños</option>
+          <option value="Pequeño">Pequeño</option>
+          <option value="Mediano">Mediano</option>
+          <option value="Grande">Grande</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-2">
+        <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">Limpiar</button>
+      </div>
+    </div>
+
+    <p class="text-muted">{{ animalesFiltrados().length }} animal(es) encontrado(s)</p>
+
+    <!-- Tarjetas -->
+    <div class="row g-4">
+      @for (animal of animalesFiltrados(); track animal.id) {
+        <div class="col-12 col-sm-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            <div class="bg-secondary-subtle text-center py-5 display-3">{{ animal.emoji }}</div>
+            <div class="card-body">
+              <h2 class="h5">{{ animal.nombre }}</h2>
+              <p class="text-muted mb-2">
+                {{ animal.especie }} · {{ animal.edad }} · {{ animal.tamano }}
+              </p>
+              <p class="card-text">{{ animal.caracter }}</p>
+              @if (animal.vacunado) {
+                <span class="badge text-bg-success me-1">Vacunado</span>
+              } @else {
+                <span class="badge text-bg-secondary me-1">Sin vacunas</span>
+              }
+              @if (animal.esterilizado) {
+                <span class="badge text-bg-info">Esterilizado</span>
+              } @else {
+                <span class="badge text-bg-warning">Por esterilizar</span>
+              }
+            </div>
+            <div class="card-footer bg-white border-0 pb-3">
+              <button class="btn btn-warning w-100">Ver detalle</button>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="col-12 text-center py-5">
+          <p class="fs-1">🔍</p>
+          <p class="text-muted">No hay animales con esos filtros.</p>
+        </div>
+      }
+    </div>
+
+  </div>
+</section>
