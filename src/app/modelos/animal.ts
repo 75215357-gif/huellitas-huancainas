@@ -7,5 +7,5 @@ export interface Animal {
   caracter: string;
   vacunado: boolean;
   esterilizado: boolean;
-  emoji: string;
+  foto: string;
 }
