@@ -1,0 +1,122 @@
+<section class="py-5 bg-warning-subtle min-vh-100">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-10 col-lg-7">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+
+            <div class="text-center mb-4">
+              <div class="fs-1">📝</div>
+              <h1 class="h3 fw-bold">Crear cuenta</h1>
+              <p class="text-muted mb-0">Únete a la adopción responsable en Huancayo</p>
+            </div>
+
+            <form [formGroup]="formulario" (ngSubmit)="registrar()" novalidate>
+              <div class="row g-3">
+
+                <div class="col-12">
+                  <label for="nombres" class="form-label">Nombres y apellidos</label>
+                  <input id="nombres" type="text" class="form-control" formControlName="nombres"
+                         [class.is-invalid]="f.nombres.touched && f.nombres.invalid">
+                  <div class="invalid-feedback">Ingresa tu nombre completo (mínimo 3 letras).</div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="dni" class="form-label">DNI</label>
+                  <input id="dni" type="text" inputmode="numeric" maxlength="8"
+                         class="form-control" formControlName="dni"
+                         [class.is-invalid]="f.dni.touched && f.dni.invalid">
+                  <div class="invalid-feedback">El DNI debe tener 8 dígitos.</div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="telefono" class="form-label">Celular</label>
+                  <input id="telefono" type="tel" inputmode="numeric" maxlength="9"
+                         class="form-control" formControlName="telefono"
+                         [class.is-invalid]="f.telefono.touched && f.telefono.invalid">
+                  <div class="invalid-feedback">Ingresa un celular de 9 dígitos que empiece con 9.</div>
+                </div>
+
+                <div class="col-12">
+                  <label for="correo" class="form-label">Correo electrónico</label>
+                  <input id="correo" type="email" class="form-control" formControlName="correo"
+                         autocomplete="email"
+                         [class.is-invalid]="f.correo.touched && f.correo.invalid">
+                  <div class="invalid-feedback">Ingresa un correo válido.</div>
+                </div>
+
+                <div class="col-12">
+                  <label for="rol" class="form-label">¿Cómo quieres participar?</label>
+                  <select id="rol" class="form-select" formControlName="rol">
+                    <option value="adoptante">Quiero adoptar</option>
+                    <option value="rescatista">Soy rescatista o albergue</option>
+                  </select>
+                  @if (f.rol.value === 'rescatista') {
+                    <div class="form-text text-warning-emphasis">
+                      Las cuentas de rescatista se verifican antes de poder publicar animales.
+                    </div>
+                  }
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="clave" class="form-label">Contraseña</label>
+                  <input id="clave" class="form-control" formControlName="clave"
+                         [type]="mostrarClave() ? 'text' : 'password'" autocomplete="new-password"
+                         [class.is-invalid]="f.clave.touched && f.clave.invalid">
+                  <div class="invalid-feedback">Mínimo 8 caracteres.</div>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label for="confirmarClave" class="form-label">Confirmar contraseña</label>
+                  <input id="confirmarClave" class="form-control" formControlName="confirmarClave"
+                         [type]="mostrarClave() ? 'text' : 'password'" autocomplete="new-password"
+                         [class.is-invalid]="f.confirmarClave.touched &&
+                           (f.confirmarClave.invalid || formulario.errors?.['clavesDiferentes'])">
+                  <div class="invalid-feedback">Las contraseñas no coinciden.</div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-check">
+                    <input id="verClave" type="checkbox" class="form-check-input"
+                           [checked]="mostrarClave()"
+                           (change)="mostrarClave.set(!mostrarClave())">
+                    <label for="verClave" class="form-check-label">Mostrar contraseñas</label>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-check">
+                    <input id="terminos" type="checkbox" class="form-check-input"
+                           formControlName="aceptaTerminos"
+                           [class.is-invalid]="f.aceptaTerminos.touched && f.aceptaTerminos.invalid">
+                    <label for="terminos" class="form-check-label">
+                      Me comprometo a una adopción responsable: no vender, criar ni ceder
+                      al animal sin avisar, y aceptar el seguimiento posterior.
+                    </label>
+                    <div class="invalid-feedback">Debes aceptar el compromiso para continuar.</div>
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <button type="submit" class="btn btn-warning w-100 btn-lg">Crear cuenta</button>
+                </div>
+
+                @if (mensaje()) {
+                  <div class="col-12">
+                    <div class="alert alert-success mb-0">{{ mensaje() }}</div>
+                  </div>
+                }
+
+              </div>
+            </form>
+
+            <p class="text-center mt-4 mb-0">
+              ¿Ya tienes cuenta? <a routerLink="/iniciar-sesion">Inicia sesión</a>
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,65 @@
+<section class="py-5 bg-warning-subtle min-vh-100">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-8 col-lg-5">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-4">
+
+            <div class="text-center mb-4">
+              <div class="fs-1">🐾</div>
+              <h1 class="h3 fw-bold">Iniciar sesión</h1>
+              <p class="text-muted mb-0">Ingresa para gestionar tus adopciones</p>
+            </div>
+
+            <form [formGroup]="formulario" (ngSubmit)="iniciarSesion()" novalidate>
+
+              <div class="mb-3">
+                <label for="correo" class="form-label">Correo electrónico</label>
+                <input id="correo" type="email" class="form-control"
+                       formControlName="correo" autocomplete="email"
+                       [class.is-invalid]="f.correo.touched && f.correo.invalid">
+                @if (f.correo.touched && f.correo.errors?.['required']) {
+                  <div class="invalid-feedback">El correo es obligatorio.</div>
+                }
+                @if (f.correo.touched && f.correo.errors?.['email']) {
+                  <div class="invalid-feedback">Ingresa un correo válido.</div>
+                }
+              </div>
+
+              <div class="mb-3">
+                <label for="clave" class="form-label">Contraseña</label>
+                <div class="input-group has-validation">
+                  <input id="clave" class="form-control"
+                         [type]="mostrarClave() ? 'text' : 'password'"
+                         formControlName="clave" autocomplete="current-password"
+                         [class.is-invalid]="f.clave.touched && f.clave.invalid">
+                  <button type="button" class="btn btn-outline-secondary"
+                          (click)="mostrarClave.set(!mostrarClave())">
+                    {{ mostrarClave() ? 'Ocultar' : 'Mostrar' }}
+                  </button>
+                  @if (f.clave.touched && f.clave.errors?.['required']) {
+                    <div class="invalid-feedback">La contraseña es obligatoria.</div>
+                  }
+                  @if (f.clave.touched && f.clave.errors?.['minlength']) {
+                    <div class="invalid-feedback">Mínimo 8 caracteres.</div>
+                  }
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-warning w-100 btn-lg">Ingresar</button>
+
+              @if (mensaje()) {
+                <div class="alert alert-success mt-3 mb-0">{{ mensaje() }}</div>
+              }
+            </form>
+
+            <p class="text-center mt-4 mb-0">
+              ¿No tienes cuenta? <a routerLink="/registro">Regístrate aquí</a>
+            </p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
