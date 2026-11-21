@@ -1,10 +1,11 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Animal } from '../../modelos/animal';
 import { AnimalService } from '../../servicios/animal.service';
 
 @Component({
   selector: 'app-listado-animales',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './listado-animales.html',
   styleUrl: './listado-animales.css',
 })

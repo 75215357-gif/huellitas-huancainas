@@ -1,0 +1,158 @@
+<div class="container py-5">
+  <!-- Botón regresar -->
+  <div class="mb-4">
+    <a routerLink="/animales" class="btn btn-outline-secondary">
+      ← Volver al catálogo
+    </a>
+  </div>
+
+  @if (cargando()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-warning" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="mt-2 text-muted">Cargando datos del animal...</p>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-danger text-center">
+      <p class="mb-2 fw-semibold">{{ error() }}</p>
+      <a routerLink="/animales" class="btn btn-outline-danger btn-sm">Regresar al catálogo</a>
+    </div>
+  } @else if (animal(); as anim) {
+    <div class="row g-4">
+      <!-- Foto e info rápida -->
+      <div class="col-12 col-lg-6">
+        <div class="card shadow-sm border-0 overflow-hidden">
+          <img [src]="anim.foto" [alt]="anim.nombre" class="img-fluid detalle-foto">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h1 class="h2 fw-bold text-dark mb-0">{{ anim.nombre }}</h1>
+              <span class="badge" [ngClass]="{
+                'text-bg-success': anim.estado === 'disponible' || !anim.estado,
+                'text-bg-warning': anim.estado === 'en_proceso',
+                'text-bg-secondary': anim.estado === 'adoptado'
+              }">
+                {{ anim.estado === 'en_proceso' ? 'En proceso' : (anim.estado === 'adoptado' ? 'Adoptado' : 'Disponible') }}
+              </span>
+            </div>
+            <p class="text-muted fs-5 mb-3">{{ anim.especie }} · {{ anim.edad }} · {{ anim.tamano }}</p>
+
+            <div class="d-flex flex-wrap gap-2 mb-4">
+              @if (anim.vacunado) {
+                <span class="badge text-bg-success p-2">💉 Vacunado</span>
+              } @else {
+                <span class="badge text-bg-secondary p-2">Sin vacunas completas</span>
+              }
+
+              @if (anim.esterilizado) {
+                <span class="badge text-bg-info p-2">✂️ Esterilizado</span>
+              } @else {
+                <span class="badge text-bg-warning p-2">Esterilización pendiente</span>
+              }
+            </div>
+
+            <div class="p-3 bg-light rounded-3 mb-2">
+              <h6 class="fw-bold mb-1">Personalidad y temperamento:</h6>
+              <p class="text-secondary mb-0">{{ anim.caracter }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de adopción -->
+      <div class="col-12 col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body p-4 d-flex flex-column justify-content-between">
+            <div>
+              <h3 class="h4 fw-bold text-primary mb-3">🏡 Proceso de Adopción</h3>
+              <p class="text-muted">
+                En <strong>Huellitas Huancaínas</strong> promovemos la tenencia responsable. Todos los animales se entregan con compromiso de cuidado, seguimiento y mucho amor en Huancayo.
+              </p>
+
+              @if (anim.estado === 'adoptado') {
+                <div class="alert alert-info mt-4">
+                  <h5 class="alert-heading">🎉 ¡Ya fue adoptado!</h5>
+                  <p class="mb-0">{{ anim.nombre }} ya encontró un hogar feliz. Puedes explorar a otros compañeros en adopción.</p>
+                </div>
+              } @else {
+                @if (authService.usuarioActual(); as usuario) {
+                  @if (solicitudExitosa()) {
+                    <div class="alert alert-success mt-4">
+                      <h5 class="alert-heading">✅ ¡Solicitud enviada con éxito!</h5>
+                      <p>
+                        Muchas gracias, <strong>{{ usuario.nombres }}</strong>. Tu solicitud para adoptar a <strong>{{ anim.nombre }}</strong> ha sido registrada.
+                      </p>
+                      <hr>
+                      <p class="mb-0">El rescatista responsable revisará tus datos y se contactará al teléfono registrado para coordinar la entrevista.</p>
+                    </div>
+                  } @else {
+                    <div class="border rounded-3 p-3 bg-light mt-3">
+                      <h5 class="fw-bold text-dark mb-2">Formulario de Adopción</h5>
+                      <p class="text-muted small mb-3">
+                        Postulando como: <strong>{{ usuario.nombres }}</strong> (DNI: {{ usuario.dni }} | Tel: {{ usuario.telefono }})
+                      </p>
+
+                      @if (errorSolicitud()) {
+                        <div class="alert alert-danger py-2 small">{{ errorSolicitud() }}</div>
+                      }
+
+                      <form [formGroup]="formularioSolicitud" (ngSubmit)="enviarSolicitud()">
+                        <div class="mb-3">
+                          <label for="mensaje" class="form-label fw-semibold">
+                            ¿Por qué deseas adoptar a {{ anim.nombre }} y qué espacio o condiciones tienes en casa?
+                          </label>
+                          <textarea
+                            id="mensaje"
+                            formControlName="mensaje"
+                            rows="4"
+                            class="form-control"
+                            placeholder="Cuéntanos sobre tu vivienda (casa/departamento), si tienes otras mascotas, y el tiempo que puedes dedicarle..."
+                            [class.is-invalid]="formularioSolicitud.get('mensaje')?.invalid && formularioSolicitud.get('mensaje')?.touched"
+                          ></textarea>
+                          @if (formularioSolicitud.get('mensaje')?.invalid && formularioSolicitud.get('mensaje')?.touched) {
+                            <div class="invalid-feedback">
+                              Por favor escribe al menos 15 caracteres para conocer tu motivación.
+                            </div>
+                          }
+                        </div>
+
+                        <button 
+                          type="submit" 
+                          class="btn btn-warning w-100 fw-bold py-2"
+                          [disabled]="enviandoSolicitud() || formularioSolicitud.invalid"
+                        >
+                          @if (enviandoSolicitud()) {
+                            <span class="spinner-border spinner-border-sm me-1"></span> Enviando...
+                          } @else {
+                            🐾 Enviar Solicitud de Adopción
+                          }
+                        </button>
+                      </form>
+                    </div>
+                  }
+                } @else {
+                  <div class="card bg-warning-subtle border-warning mt-4">
+                    <div class="card-body text-center py-4">
+                      <h5 class="fw-bold text-dark mb-2">¿Quieres darle un hogar a {{ anim.nombre }}?</h5>
+                      <p class="text-muted mb-3">
+                        Para enviar tu solicitud de adopción necesitas iniciar sesión con tu cuenta.
+                      </p>
+                      <div class="d-flex justify-content-center gap-2">
+                        <a routerLink="/iniciar-sesion" class="btn btn-dark">Iniciar sesión</a>
+                        <a routerLink="/registro" class="btn btn-outline-dark">Crear cuenta</a>
+                      </div>
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+
+            <div class="mt-4 pt-3 border-top text-muted small text-center">
+              📍 Huancayo, Junín · Huellitas Huancaínas
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

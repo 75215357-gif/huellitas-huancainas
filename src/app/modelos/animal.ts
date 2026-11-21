@@ -8,4 +8,6 @@ export interface Animal {
   vacunado: boolean;
   esterilizado: boolean;
   foto: string;
+  estado?: 'disponible' | 'en_proceso' | 'adoptado';
+  rescatista_id?: number | null;
 }

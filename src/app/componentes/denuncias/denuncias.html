@@ -1,0 +1,165 @@
+<section class="bg-danger-subtle py-4">
+  <div class="container">
+    <div class="d-flex align-items-center gap-3">
+      <span class="fs-1">🚨</span>
+      <div>
+        <h1 class="h2 fw-bold mb-1 text-danger-emphasis">Reporte de Maltrato y Casos de Rescate</h1>
+        <p class="mb-0 text-muted">Comunidad unida por la protección animal en Huancayo y el Valle del Mantaro.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container py-5">
+  <div class="row g-5">
+    <!-- Columna Izquierda: Formulario de reporte -->
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <h3 class="h4 fw-bold text-dark mb-2">📢 Registrar nuevo reporte</h3>
+          <p class="text-muted small mb-4">
+            Ingresa los datos del perrito o gatito que necesita ayuda. La información será visible para los rescatistas de Huancayo.
+          </p>
+
+          @if (mensajeExito()) {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <strong>¡Reporte enviado!</strong> {{ mensajeExito() }}
+            </div>
+          }
+
+          @if (errorEnvio()) {
+            <div class="alert alert-danger py-2 small">{{ errorEnvio() }}</div>
+          }
+
+          <form [formGroup]="formulario" (ngSubmit)="registrarDenuncia()">
+            <!-- Título -->
+            <div class="mb-3">
+              <label for="titulo" class="form-label fw-semibold">Título del caso *</label>
+              <input
+                type="text"
+                id="titulo"
+                formControlName="titulo"
+                class="form-control"
+                placeholder="Ej. Perrito atropellado o abandonado"
+                [class.is-invalid]="formulario.get('titulo')?.invalid && formulario.get('titulo')?.touched"
+              >
+              @if (formulario.get('titulo')?.invalid && formulario.get('titulo')?.touched) {
+                <div class="invalid-feedback">Ingresa un título descriptivo (mínimo 5 caracteres).</div>
+              }
+            </div>
+
+            <!-- Ubicación -->
+            <div class="mb-3">
+              <label for="ubicacion" class="form-label fw-semibold">Ubicación exacta o referencia *</label>
+              <input
+                type="text"
+                id="ubicacion"
+                formControlName="ubicacion"
+                class="form-control"
+                placeholder="Ej. Jr. Ancash cuadra 4, cerca al parque Huamanmarca"
+                [class.is-invalid]="formulario.get('ubicacion')?.invalid && formulario.get('ubicacion')?.touched"
+              >
+              @if (formulario.get('ubicacion')?.invalid && formulario.get('ubicacion')?.touched) {
+                <div class="invalid-feedback">La ubicación es obligatoria para poder auxiliar al animal.</div>
+              }
+            </div>
+
+            <!-- Contacto -->
+            <div class="mb-3">
+              <label for="contacto" class="form-label fw-semibold">Teléfono de contacto (Opcional)</label>
+              <input
+                type="tel"
+                id="contacto"
+                formControlName="contacto"
+                class="form-control"
+                placeholder="9 dígitos para que el rescatista te contacte"
+                [class.is-invalid]="formulario.get('contacto')?.invalid && formulario.get('contacto')?.touched"
+              >
+              @if (formulario.get('contacto')?.invalid && formulario.get('contacto')?.touched) {
+                <div class="invalid-feedback">Debe ser un número celular peruano válido de 9 dígitos.</div>
+              }
+            </div>
+
+            <!-- Descripción -->
+            <div class="mb-4">
+              <label for="descripcion" class="form-label fw-semibold">Descripción de la situación *</label>
+              <textarea
+                id="descripcion"
+                formControlName="descripcion"
+                rows="4"
+                class="form-control"
+                placeholder="Describe el estado de salud del animal, color, raza aproximada, tiempo que lleva en el lugar..."
+                [class.is-invalid]="formulario.get('descripcion')?.invalid && formulario.get('descripcion')?.touched"
+              ></textarea>
+              @if (formulario.get('descripcion')?.invalid && formulario.get('descripcion')?.touched) {
+                <div class="invalid-feedback">Por favor detalla la situación (mínimo 15 caracteres).</div>
+              }
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-danger w-100 fw-bold py-2"
+              [disabled]="enviando() || formulario.invalid"
+            >
+              @if (enviando()) {
+                <span class="spinner-border spinner-border-sm me-1"></span> Enviando reporte...
+              } @else {
+                🚨 Enviar Reporte de Ayuda
+              }
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna Derecha: Casos reportados recientemente -->
+    <div class="col-12 col-lg-6">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h4 fw-bold text-dark mb-0">📋 Casos en seguimiento</h3>
+        <button class="btn btn-outline-secondary btn-sm" (click)="cargarDenuncias()">🔄 Actualizar</button>
+      </div>
+
+      @if (cargandoListado()) {
+        <div class="text-center py-4">
+          <div class="spinner-border text-danger spinner-border-sm" role="status"></div>
+          <span class="ms-2 text-muted">Cargando reportes...</span>
+        </div>
+      } @else {
+        <div class="vstack gap-3">
+          @for (d of denuncias(); track d.id) {
+            <div class="card shadow-sm border-0 border-start border-4" [ngClass]="{
+              'border-warning': d.estado === 'pendiente',
+              'border-info': d.estado === 'en_revision',
+              'border-success': d.estado === 'atendida'
+            }">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h5 class="card-title fw-bold text-dark mb-0">{{ d.titulo }}</h5>
+                  <span class="badge" [ngClass]="{
+                    'text-bg-warning': d.estado === 'pendiente',
+                    'text-bg-info': d.estado === 'en_revision',
+                    'text-bg-success': d.estado === 'atendida'
+                  }">
+                    {{ d.estado === 'en_revision' ? 'En revisión' : (d.estado === 'atendida' ? 'Atendida' : 'Pendiente') }}
+                  </span>
+                </div>
+                <p class="card-text text-muted small mb-2">
+                  📍 <strong>Lugar:</strong> {{ d.ubicacion }}
+                </p>
+                <p class="card-text text-secondary mb-2">{{ d.descripcion }}</p>
+                @if (d.contacto) {
+                  <p class="card-text text-muted small mb-0">📞 Contacto: {{ d.contacto }}</p>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="text-center py-5 bg-light rounded-3">
+              <p class="fs-2 mb-1">🐾</p>
+              <p class="text-muted mb-0">No hay reportes de maltrato activos en este momento.</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>
