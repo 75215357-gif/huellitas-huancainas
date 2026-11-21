@@ -30,6 +30,7 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
+.angular/
 /.angular/cache
 .sass-cache/
 /connect.lock
@@ -38,6 +39,17 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+
+# Environment & Secrets
+.env
+*.env
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
 
 # System files
 .DS_Store

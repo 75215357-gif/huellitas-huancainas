@@ -17,6 +17,7 @@
                 <label for="correo" class="form-label">Correo electrónico</label>
                 <input id="correo" type="email" class="form-control"
                        formControlName="correo" autocomplete="email"
+                       placeholder="ejemplo@correo.com"
                        [class.is-invalid]="f.correo.touched && f.correo.invalid">
                 @if (f.correo.touched && f.correo.errors?.['required']) {
                   <div class="invalid-feedback">El correo es obligatorio.</div>
@@ -32,6 +33,7 @@
                   <input id="clave" class="form-control"
                          [type]="mostrarClave() ? 'text' : 'password'"
                          formControlName="clave" autocomplete="current-password"
+                         placeholder="••••••••"
                          [class.is-invalid]="f.clave.touched && f.clave.invalid">
                   <button type="button" class="btn btn-outline-secondary"
                           (click)="mostrarClave.set(!mostrarClave())">
@@ -46,10 +48,21 @@
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-warning w-100 btn-lg">Ingresar</button>
+              <button type="submit" class="btn btn-warning w-100 btn-lg" [disabled]="cargando()">
+                @if (cargando()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Ingresando...
+                } @else {
+                  Ingresar
+                }
+              </button>
 
               @if (mensaje()) {
                 <div class="alert alert-success mt-3 mb-0">{{ mensaje() }}</div>
+              }
+
+              @if (error()) {
+                <div class="alert alert-danger mt-3 mb-0">{{ error() }}</div>
               }
             </form>
 

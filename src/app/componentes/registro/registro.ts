@@ -3,7 +3,8 @@ import {
   AbstractControl, FormBuilder, ReactiveFormsModule,
   ValidationErrors, Validators
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../servicios/auth.service';
 
 // Valida que las dos contraseñas sean iguales
 function clavesIguales(grupo: AbstractControl): ValidationErrors | null {
@@ -20,9 +21,13 @@ function clavesIguales(grupo: AbstractControl): ValidationErrors | null {
 })
 export class Registro {
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   mostrarClave = signal(false);
   mensaje = signal('');
+  error = signal('');
+  cargando = signal(false);
 
   formulario = this.fb.nonNullable.group(
     {
@@ -47,7 +52,33 @@ export class Registro {
       this.formulario.markAllAsTouched();
       return;
     }
-    // TODO: aquí se llamará a la API de FastAPI (POST /auth/registro)
-    this.mensaje.set('Registro válido. Pronto se conectará con el servidor.');
+
+    this.cargando.set(true);
+    this.mensaje.set('');
+    this.error.set('');
+
+    const val = this.formulario.getRawValue();
+
+    this.authService.registro({
+      dni: val.dni,
+      nombres: val.nombres,
+      telefono: val.telefono,
+      correo: val.correo,
+      rol: val.rol,
+      clave: val.clave
+    }).subscribe({
+      next: (res) => {
+        this.cargando.set(false);
+        this.mensaje.set(`¡Cuenta creada exitosamente para ${res.usuario.nombres}! Redirigiendo...`);
+        setTimeout(() => {
+          this.router.navigate(['/animales']);
+        }, 1200);
+      },
+      error: (err) => {
+        this.cargando.set(false);
+        const detalle = err.error?.detail || 'Error al crear la cuenta. Verifica que los datos no estén registrados.';
+        this.error.set(detalle);
+      }
+    });
   }
 }

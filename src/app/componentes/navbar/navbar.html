@@ -18,21 +18,24 @@
                         [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" routerLink="/animales" routerLinkActive="active">Animales</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Cómo funciona</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Denunciar</a>
+                    <a class="nav-link" routerLink="/animales" routerLinkActive="active">Animales en adopción</a>
                 </li>
             </ul>
 
-            <!-- Botones de sesión -->
-            <div class="d-flex gap-2">
-                <a routerLink="/iniciar-sesion" class="btn btn-outline-dark">Iniciar sesión</a>
-                <a routerLink="/registro" class="btn btn-warning">Registrarse</a>
-            </div>
+            <!-- Botones de sesión o Usuario autenticado -->
+            @if (authService.usuarioActual(); as usuario) {
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge text-bg-warning px-3 py-2">
+                        👤 {{ usuario.nombres }} ({{ usuario.rol }})
+                    </span>
+                    <button class="btn btn-outline-danger btn-sm" (click)="authService.cerrarSesion()">Cerrar sesión</button>
+                </div>
+            } @else {
+                <div class="d-flex gap-2">
+                    <a routerLink="/iniciar-sesion" class="btn btn-outline-dark">Iniciar sesión</a>
+                    <a routerLink="/registro" class="btn btn-warning">Registrarse</a>
+                </div>
+            }
         </div>
 
     </div>

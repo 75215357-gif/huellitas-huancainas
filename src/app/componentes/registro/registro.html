@@ -17,6 +17,7 @@
                 <div class="col-12">
                   <label for="nombres" class="form-label">Nombres y apellidos</label>
                   <input id="nombres" type="text" class="form-control" formControlName="nombres"
+                         placeholder="Ej. Ana Torres Gómez"
                          [class.is-invalid]="f.nombres.touched && f.nombres.invalid">
                   <div class="invalid-feedback">Ingresa tu nombre completo (mínimo 3 letras).</div>
                 </div>
@@ -25,6 +26,7 @@
                   <label for="dni" class="form-label">DNI</label>
                   <input id="dni" type="text" inputmode="numeric" maxlength="8"
                          class="form-control" formControlName="dni"
+                         placeholder="8 dígitos"
                          [class.is-invalid]="f.dni.touched && f.dni.invalid">
                   <div class="invalid-feedback">El DNI debe tener 8 dígitos.</div>
                 </div>
@@ -33,6 +35,7 @@
                   <label for="telefono" class="form-label">Celular</label>
                   <input id="telefono" type="tel" inputmode="numeric" maxlength="9"
                          class="form-control" formControlName="telefono"
+                         placeholder="987654321"
                          [class.is-invalid]="f.telefono.touched && f.telefono.invalid">
                   <div class="invalid-feedback">Ingresa un celular de 9 dígitos que empiece con 9.</div>
                 </div>
@@ -41,6 +44,7 @@
                   <label for="correo" class="form-label">Correo electrónico</label>
                   <input id="correo" type="email" class="form-control" formControlName="correo"
                          autocomplete="email"
+                         placeholder="ana@gmail.com"
                          [class.is-invalid]="f.correo.touched && f.correo.invalid">
                   <div class="invalid-feedback">Ingresa un correo válido.</div>
                 </div>
@@ -62,6 +66,7 @@
                   <label for="clave" class="form-label">Contraseña</label>
                   <input id="clave" class="form-control" formControlName="clave"
                          [type]="mostrarClave() ? 'text' : 'password'" autocomplete="new-password"
+                         placeholder="Mínimo 8 caracteres"
                          [class.is-invalid]="f.clave.touched && f.clave.invalid">
                   <div class="invalid-feedback">Mínimo 8 caracteres.</div>
                 </div>
@@ -70,6 +75,7 @@
                   <label for="confirmarClave" class="form-label">Confirmar contraseña</label>
                   <input id="confirmarClave" class="form-control" formControlName="confirmarClave"
                          [type]="mostrarClave() ? 'text' : 'password'" autocomplete="new-password"
+                         placeholder="Repite la contraseña"
                          [class.is-invalid]="f.confirmarClave.touched &&
                            (f.confirmarClave.invalid || formulario.errors?.['clavesDiferentes'])">
                   <div class="invalid-feedback">Las contraseñas no coinciden.</div>
@@ -98,12 +104,25 @@
                 </div>
 
                 <div class="col-12">
-                  <button type="submit" class="btn btn-warning w-100 btn-lg">Crear cuenta</button>
+                  <button type="submit" class="btn btn-warning w-100 btn-lg" [disabled]="cargando()">
+                    @if (cargando()) {
+                      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Creando cuenta...
+                    } @else {
+                      Crear cuenta
+                    }
+                  </button>
                 </div>
 
                 @if (mensaje()) {
                   <div class="col-12">
                     <div class="alert alert-success mb-0">{{ mensaje() }}</div>
+                  </div>
+                }
+
+                @if (error()) {
+                  <div class="col-12">
+                    <div class="alert alert-danger mb-0">{{ error() }}</div>
                   </div>
                 }
 

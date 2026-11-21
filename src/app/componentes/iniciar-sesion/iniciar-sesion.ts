@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../servicios/auth.service';
 
 @Component({
   imports: [ReactiveFormsModule, RouterLink],
@@ -10,9 +11,13 @@ import { RouterLink } from '@angular/router';
 })
 export class IniciarSesion {
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   mostrarClave = signal(false);
   mensaje = signal('');
+  error = signal('');
+  cargando = signal(false);
 
   formulario = this.fb.nonNullable.group({
     correo: ['', [Validators.required, Validators.email]],
@@ -29,7 +34,26 @@ export class IniciarSesion {
       this.formulario.markAllAsTouched();
       return;
     }
-    // TODO: aquí se llamará a la API de FastAPI (POST /auth/login)
-    this.mensaje.set('Formulario válido. Pronto se conectará con el servidor.');
+
+    this.cargando.set(true);
+    this.mensaje.set('');
+    this.error.set('');
+
+    const { correo, clave } = this.formulario.getRawValue();
+
+    this.authService.login(correo, clave).subscribe({
+      next: (res) => {
+        this.cargando.set(false);
+        this.mensaje.set(`¡Bienvenido de nuevo, ${res.usuario.nombres}! Redirigiendo...`);
+        setTimeout(() => {
+          this.router.navigate(['/animales']);
+        }, 1200);
+      },
+      error: (err) => {
+        this.cargando.set(false);
+        const detalle = err.error?.detail || 'Credenciales inválidas o error de conexión con el servidor.';
+        this.error.set(detalle);
+      }
+    });
   }
 }

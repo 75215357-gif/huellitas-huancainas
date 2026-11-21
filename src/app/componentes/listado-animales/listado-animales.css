@@ -1,0 +1,5 @@
+.animal-foto {
+  height: 220px;
+  object-fit: cover;
+  width: 100%;
+}
