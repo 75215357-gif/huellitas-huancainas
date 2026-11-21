@@ -96,22 +96,24 @@
                         <div class="alert alert-danger py-2 small">{{ errorSolicitud() }}</div>
                       }
 
-                      <form [formGroup]="formularioSolicitud" (ngSubmit)="enviarSolicitud()">
+                      <form [formRoot]="solicitudForm" novalidate>
                         <div class="mb-3">
                           <label for="mensaje" class="form-label fw-semibold">
                             ¿Por qué deseas adoptar a {{ anim.nombre }} y qué espacio o condiciones tienes en casa?
                           </label>
                           <textarea
                             id="mensaje"
-                            formControlName="mensaje"
+                            [formField]="solicitudForm.mensaje"
                             rows="4"
                             class="form-control"
                             placeholder="Cuéntanos sobre tu vivienda (casa/departamento), si tienes otras mascotas, y el tiempo que puedes dedicarle..."
-                            [class.is-invalid]="formularioSolicitud.get('mensaje')?.invalid && formularioSolicitud.get('mensaje')?.touched"
+                            [class.is-invalid]="solicitudForm.mensaje().touched() && solicitudForm.mensaje().invalid()"
                           ></textarea>
-                          @if (formularioSolicitud.get('mensaje')?.invalid && formularioSolicitud.get('mensaje')?.touched) {
-                            <div class="invalid-feedback">
-                              Por favor escribe al menos 15 caracteres para conocer tu motivación.
+                          @if (solicitudForm.mensaje().touched() && solicitudForm.mensaje().invalid()) {
+                            <div class="invalid-feedback d-block">
+                              @for (err of solicitudForm.mensaje().errors(); track $index) {
+                                <div>{{ err.message }}</div>
+                              }
                             </div>
                           }
                         </div>
@@ -119,7 +121,7 @@
                         <button 
                           type="submit" 
                           class="btn btn-warning w-100 fw-bold py-2"
-                          [disabled]="enviandoSolicitud() || formularioSolicitud.invalid"
+                          [disabled]="enviandoSolicitud() || solicitudForm().submitting()"
                         >
                           @if (enviandoSolicitud()) {
                             <span class="spinner-border spinner-border-sm me-1"></span> Enviando...

@@ -11,76 +11,118 @@
               <p class="text-muted mb-0">Únete a la adopción responsable en Huancayo</p>
             </div>
 
-            <form [formGroup]="formulario" (ngSubmit)="registrar()" novalidate>
+            <form [formRoot]="registroForm" novalidate>
               <div class="row g-3">
 
+                <!-- Nombres -->
                 <div class="col-12">
                   <label for="nombres" class="form-label">Nombres y apellidos</label>
-                  <input id="nombres" type="text" class="form-control" formControlName="nombres"
-                         placeholder="Ej. Ana Torres Gómez"
-                         [class.is-invalid]="f.nombres.touched && f.nombres.invalid">
-                  <div class="invalid-feedback">Ingresa tu nombre completo (mínimo 3 letras).</div>
+                  <input id="nombres" type="text" class="form-control" [formField]="registroForm.nombres"
+                         placeholder="Ej. Juan Pérez"
+                         [class.is-invalid]="registroForm.nombres().touched() && registroForm.nombres().invalid()">
+                  @if (registroForm.nombres().touched() && registroForm.nombres().invalid()) {
+                    <div class="invalid-feedback d-block">
+                      @for (err of registroForm.nombres().errors(); track $index) {
+                        <div>{{ err.message }}</div>
+                      }
+                    </div>
+                  }
                 </div>
 
+                <!-- DNI -->
                 <div class="col-12 col-md-6">
                   <label for="dni" class="form-label">DNI</label>
-                  <input id="dni" type="text" inputmode="numeric" maxlength="8"
-                         class="form-control" formControlName="dni"
-                         placeholder="8 dígitos"
-                         [class.is-invalid]="f.dni.touched && f.dni.invalid">
-                  <div class="invalid-feedback">El DNI debe tener 8 dígitos.</div>
+                  <input id="dni" type="text" inputmode="numeric"
+                         class="form-control" [formField]="registroForm.dni"
+                         placeholder="12345678"
+                         [class.is-invalid]="registroForm.dni().touched() && registroForm.dni().invalid()">
+                  @if (registroForm.dni().touched() && registroForm.dni().invalid()) {
+                    <div class="invalid-feedback d-block">
+                      @for (err of registroForm.dni().errors(); track $index) {
+                        <div>{{ err.message }}</div>
+                      }
+                    </div>
+                  }
                 </div>
 
+                <!-- Celular -->
                 <div class="col-12 col-md-6">
                   <label for="telefono" class="form-label">Celular</label>
-                  <input id="telefono" type="tel" inputmode="numeric" maxlength="9"
-                         class="form-control" formControlName="telefono"
+                  <input id="telefono" type="tel" inputmode="numeric"
+                         class="form-control" [formField]="registroForm.telefono"
                          placeholder="987654321"
-                         [class.is-invalid]="f.telefono.touched && f.telefono.invalid">
-                  <div class="invalid-feedback">Ingresa un celular de 9 dígitos que empiece con 9.</div>
+                         [class.is-invalid]="registroForm.telefono().touched() && registroForm.telefono().invalid()">
+                  @if (registroForm.telefono().touched() && registroForm.telefono().invalid()) {
+                    <div class="invalid-feedback d-block">
+                      @for (err of registroForm.telefono().errors(); track $index) {
+                        <div>{{ err.message }}</div>
+                      }
+                    </div>
+                  }
                 </div>
 
+                <!-- Correo -->
                 <div class="col-12">
                   <label for="correo" class="form-label">Correo electrónico</label>
-                  <input id="correo" type="email" class="form-control" formControlName="correo"
-                         autocomplete="email"
-                         placeholder="ana@gmail.com"
-                         [class.is-invalid]="f.correo.touched && f.correo.invalid">
-                  <div class="invalid-feedback">Ingresa un correo válido.</div>
+                  <input id="correo" type="email" class="form-control" [formField]="registroForm.correo"
+                         autocomplete="email" placeholder="ejemplo@correo.com"
+                         [class.is-invalid]="registroForm.correo().touched() && registroForm.correo().invalid()">
+                  @if (registroForm.correo().touched() && registroForm.correo().invalid()) {
+                    <div class="invalid-feedback d-block">
+                      @for (err of registroForm.correo().errors(); track $index) {
+                        <div>{{ err.message }}</div>
+                      }
+                    </div>
+                  }
                 </div>
 
+                <!-- Rol -->
                 <div class="col-12">
                   <label for="rol" class="form-label">¿Cómo quieres participar?</label>
-                  <select id="rol" class="form-select" formControlName="rol">
+                  <select id="rol" class="form-select" [formField]="registroForm.rol">
                     <option value="adoptante">Quiero adoptar</option>
                     <option value="rescatista">Soy rescatista o albergue</option>
                   </select>
-                  @if (f.rol.value === 'rescatista') {
+                  @if (modelo().rol === 'rescatista') {
                     <div class="form-text text-warning-emphasis">
                       Las cuentas de rescatista se verifican antes de poder publicar animales.
                     </div>
                   }
                 </div>
 
+                <!-- Clave -->
                 <div class="col-12 col-md-6">
                   <label for="clave" class="form-label">Contraseña</label>
-                  <input id="clave" class="form-control" formControlName="clave"
+                  <input id="clave" class="form-control" [formField]="registroForm.clave"
                          [type]="mostrarClave() ? 'text' : 'password'" autocomplete="new-password"
-                         placeholder="Mínimo 8 caracteres"
-                         [class.is-invalid]="f.clave.touched && f.clave.invalid">
-                  <div class="invalid-feedback">Mínimo 8 caracteres.</div>
+                         placeholder="••••••••"
+                         [class.is-invalid]="registroForm.clave().touched() && registroForm.clave().invalid()">
+                  @if (registroForm.clave().touched() && registroForm.clave().invalid()) {
+                    <div class="invalid-feedback d-block">
+                      @for (err of registroForm.clave().errors(); track $index) {
+                        <div>{{ err.message }}</div>
+                      }
+                    </div>
+                  }
                 </div>
 
+                <!-- Confirmar Clave -->
                 <div class="col-12 col-md-6">
                   <label for="confirmarClave" class="form-label">Confirmar contraseña</label>
-                  <input id="confirmarClave" class="form-control" formControlName="confirmarClave"
+                  <input id="confirmarClave" class="form-control" [formField]="registroForm.confirmarClave"
                          [type]="mostrarClave() ? 'text' : 'password'" autocomplete="new-password"
-                         placeholder="Repite la contraseña"
-                         [class.is-invalid]="f.confirmarClave.touched &&
-                           (f.confirmarClave.invalid || formulario.errors?.['clavesDiferentes'])">
-                  <div class="invalid-feedback">Las contraseñas no coinciden.</div>
+                         placeholder="••••••••"
+                         [class.is-invalid]="registroForm.confirmarClave().touched() && registroForm.confirmarClave().invalid()">
+                  @if (registroForm.confirmarClave().touched() && registroForm.confirmarClave().invalid()) {
+                    <div class="invalid-feedback d-block">
+                      @for (err of registroForm.confirmarClave().errors(); track $index) {
+                        <div>{{ err.message }}</div>
+                      }
+                    </div>
+                  }
                 </div>
 
+                <!-- Mostrar contraseña check -->
                 <div class="col-12">
                   <div class="form-check">
                     <input id="verClave" type="checkbox" class="form-check-input"
@@ -90,23 +132,31 @@
                   </div>
                 </div>
 
+                <!-- Términos -->
                 <div class="col-12">
                   <div class="form-check">
                     <input id="terminos" type="checkbox" class="form-check-input"
-                           formControlName="aceptaTerminos"
-                           [class.is-invalid]="f.aceptaTerminos.touched && f.aceptaTerminos.invalid">
+                           [formField]="registroForm.aceptaTerminos"
+                           [class.is-invalid]="registroForm.aceptaTerminos().touched() && registroForm.aceptaTerminos().invalid()">
                     <label for="terminos" class="form-check-label">
                       Me comprometo a una adopción responsable: no vender, criar ni ceder
                       al animal sin avisar, y aceptar el seguimiento posterior.
                     </label>
-                    <div class="invalid-feedback">Debes aceptar el compromiso para continuar.</div>
+                    @if (registroForm.aceptaTerminos().touched() && registroForm.aceptaTerminos().invalid()) {
+                      <div class="invalid-feedback d-block">
+                        @for (err of registroForm.aceptaTerminos().errors(); track $index) {
+                          <div>{{ err.message }}</div>
+                        }
+                      </div>
+                    }
                   </div>
                 </div>
 
+                <!-- Botón submit -->
                 <div class="col-12">
-                  <button type="submit" class="btn btn-warning w-100 btn-lg" [disabled]="cargando()">
+                  <button type="submit" class="btn btn-warning w-100 btn-lg" [disabled]="cargando() || registroForm().submitting()">
                     @if (cargando()) {
-                      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      <span class="spinner-border spinner-border-sm me-2" role="status"></span>
                       Creando cuenta...
                     } @else {
                       Crear cuenta

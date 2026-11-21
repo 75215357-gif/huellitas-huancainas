@@ -31,20 +31,24 @@
             <div class="alert alert-danger py-2 small">{{ errorEnvio() }}</div>
           }
 
-          <form [formGroup]="formulario" (ngSubmit)="registrarDenuncia()">
+          <form [formRoot]="denunciaForm" novalidate>
             <!-- Título -->
             <div class="mb-3">
               <label for="titulo" class="form-label fw-semibold">Título del caso *</label>
               <input
                 type="text"
                 id="titulo"
-                formControlName="titulo"
+                [formField]="denunciaForm.titulo"
                 class="form-control"
                 placeholder="Ej. Perrito atropellado o abandonado"
-                [class.is-invalid]="formulario.get('titulo')?.invalid && formulario.get('titulo')?.touched"
+                [class.is-invalid]="denunciaForm.titulo().touched() && denunciaForm.titulo().invalid()"
               >
-              @if (formulario.get('titulo')?.invalid && formulario.get('titulo')?.touched) {
-                <div class="invalid-feedback">Ingresa un título descriptivo (mínimo 5 caracteres).</div>
+              @if (denunciaForm.titulo().touched() && denunciaForm.titulo().invalid()) {
+                <div class="invalid-feedback d-block">
+                  @for (err of denunciaForm.titulo().errors(); track $index) {
+                    <div>{{ err.message }}</div>
+                  }
+                </div>
               }
             </div>
 
@@ -54,13 +58,17 @@
               <input
                 type="text"
                 id="ubicacion"
-                formControlName="ubicacion"
+                [formField]="denunciaForm.ubicacion"
                 class="form-control"
                 placeholder="Ej. Jr. Ancash cuadra 4, cerca al parque Huamanmarca"
-                [class.is-invalid]="formulario.get('ubicacion')?.invalid && formulario.get('ubicacion')?.touched"
+                [class.is-invalid]="denunciaForm.ubicacion().touched() && denunciaForm.ubicacion().invalid()"
               >
-              @if (formulario.get('ubicacion')?.invalid && formulario.get('ubicacion')?.touched) {
-                <div class="invalid-feedback">La ubicación es obligatoria para poder auxiliar al animal.</div>
+              @if (denunciaForm.ubicacion().touched() && denunciaForm.ubicacion().invalid()) {
+                <div class="invalid-feedback d-block">
+                  @for (err of denunciaForm.ubicacion().errors(); track $index) {
+                    <div>{{ err.message }}</div>
+                  }
+                </div>
               }
             </div>
 
@@ -70,13 +78,17 @@
               <input
                 type="tel"
                 id="contacto"
-                formControlName="contacto"
+                [formField]="denunciaForm.contacto"
                 class="form-control"
                 placeholder="9 dígitos para que el rescatista te contacte"
-                [class.is-invalid]="formulario.get('contacto')?.invalid && formulario.get('contacto')?.touched"
+                [class.is-invalid]="denunciaForm.contacto().touched() && denunciaForm.contacto().invalid()"
               >
-              @if (formulario.get('contacto')?.invalid && formulario.get('contacto')?.touched) {
-                <div class="invalid-feedback">Debe ser un número celular peruano válido de 9 dígitos.</div>
+              @if (denunciaForm.contacto().touched() && denunciaForm.contacto().invalid()) {
+                <div class="invalid-feedback d-block">
+                  @for (err of denunciaForm.contacto().errors(); track $index) {
+                    <div>{{ err.message }}</div>
+                  }
+                </div>
               }
             </div>
 
@@ -85,21 +97,25 @@
               <label for="descripcion" class="form-label fw-semibold">Descripción de la situación *</label>
               <textarea
                 id="descripcion"
-                formControlName="descripcion"
+                [formField]="denunciaForm.descripcion"
                 rows="4"
                 class="form-control"
                 placeholder="Describe el estado de salud del animal, color, raza aproximada, tiempo que lleva en el lugar..."
-                [class.is-invalid]="formulario.get('descripcion')?.invalid && formulario.get('descripcion')?.touched"
+                [class.is-invalid]="denunciaForm.descripcion().touched() && denunciaForm.descripcion().invalid()"
               ></textarea>
-              @if (formulario.get('descripcion')?.invalid && formulario.get('descripcion')?.touched) {
-                <div class="invalid-feedback">Por favor detalla la situación (mínimo 15 caracteres).</div>
+              @if (denunciaForm.descripcion().touched() && denunciaForm.descripcion().invalid()) {
+                <div class="invalid-feedback d-block">
+                  @for (err of denunciaForm.descripcion().errors(); track $index) {
+                    <div>{{ err.message }}</div>
+                  }
+                </div>
               }
             </div>
 
             <button
               type="submit"
               class="btn btn-danger w-100 fw-bold py-2"
-              [disabled]="enviando() || formulario.invalid"
+              [disabled]="enviando() || denunciaForm().submitting()"
             >
               @if (enviando()) {
                 <span class="spinner-border spinner-border-sm me-1"></span> Enviando reporte...

@@ -1,18 +1,17 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormField, FormRoot, form, required, minLength, pattern } from '@angular/forms/signals';
 import { DenunciaService } from '../../servicios/denuncia.service';
 import { Denuncia } from '../../modelos/denuncia';
 
 @Component({
   selector: 'app-denuncias',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormRoot, FormField],
   templateUrl: './denuncias.html',
   styleUrl: './denuncias.css'
 })
 export class Denuncias implements OnInit {
-  private fb = inject(FormBuilder);
   private denunciaService = inject(DenunciaService);
 
   denuncias = signal<Denuncia[]>([]);
@@ -21,12 +20,35 @@ export class Denuncias implements OnInit {
   mensajeExito = signal('');
   errorEnvio = signal('');
 
-  formulario = this.fb.group({
-    titulo: ['', [Validators.required, Validators.minLength(5)]],
-    ubicacion: ['', [Validators.required, Validators.minLength(5)]],
-    contacto: ['', [Validators.pattern('^[0-9]{9}$')]],
-    descripcion: ['', [Validators.required, Validators.minLength(15)]]
+  modelo = signal({
+    titulo: '',
+    ubicacion: '',
+    contacto: '',
+    descripcion: ''
   });
+
+  readonly denunciaForm = form(
+    this.modelo,
+    (d) => {
+      required(d.titulo, { message: 'El título del caso es obligatorio.' });
+      minLength(d.titulo, 5, { message: 'Ingresa un título descriptivo (mínimo 5 caracteres).' });
+
+      required(d.ubicacion, { message: 'La ubicación exacta es obligatoria.' });
+      minLength(d.ubicacion, 5, { message: 'La ubicación debe tener al menos 5 caracteres.' });
+
+      pattern(d.contacto, /^$|^[0-9]{9}$/, { message: 'Debe ser un número celular peruano válido de 9 dígitos.' });
+
+      required(d.descripcion, { message: 'La descripción es obligatoria.' });
+      minLength(d.descripcion, 15, { message: 'Por favor detalla la situación (mínimo 15 caracteres).' });
+    },
+    {
+      submission: {
+        action: async () => {
+          this.registrarDenuncia();
+        }
+      }
+    }
+  );
 
   ngOnInit(): void {
     this.cargarDenuncias();
@@ -46,28 +68,27 @@ export class Denuncias implements OnInit {
   }
 
   registrarDenuncia(): void {
-    if (this.formulario.invalid) {
-      this.formulario.markAllAsTouched();
-      return;
-    }
-
     this.enviando.set(true);
     this.mensajeExito.set('');
     this.errorEnvio.set('');
 
-    const val = this.formulario.value;
+    const val = this.modelo();
 
     this.denunciaService.crearDenuncia({
-      titulo: val.titulo || '',
-      ubicacion: val.ubicacion || '',
+      titulo: val.titulo,
+      ubicacion: val.ubicacion,
       contacto: val.contacto || undefined,
-      descripcion: val.descripcion || ''
+      descripcion: val.descripcion
     }).subscribe({
       next: (nueva) => {
         this.enviando.set(false);
         this.mensajeExito.set('¡Tu denuncia o caso de rescate ha sido registrado exitosamente! La red de rescatistas de Huancayo lo revisará a la brevedad.');
-        this.formulario.reset();
-        // Agregar la nueva denuncia a la lista
+        this.modelo.set({
+          titulo: '',
+          ubicacion: '',
+          contacto: '',
+          descripcion: ''
+        });
         this.denuncias.update((prev) => [nueva, ...prev]);
       },
       error: (err) => {

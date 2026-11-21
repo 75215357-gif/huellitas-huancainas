@@ -1,16 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { FormField, FormRoot, form, required, minLength, email } from '@angular/forms/signals';
 import { AuthService } from '../../servicios/auth.service';
 
 @Component({
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [FormRoot, FormField, RouterLink],
   selector: 'app-iniciar-sesion',
   styleUrl: './iniciar-sesion.css',
   templateUrl: './iniciar-sesion.html',
 })
 export class IniciarSesion {
-  private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
 
@@ -19,27 +18,35 @@ export class IniciarSesion {
   error = signal('');
   cargando = signal(false);
 
-  formulario = this.fb.nonNullable.group({
-    correo: ['', [Validators.required, Validators.email]],
-    clave: ['', [Validators.required, Validators.minLength(8)]],
+  modelo = signal({
+    correo: '',
+    clave: '',
   });
 
-  // Acceso corto a los controles desde el HTML
-  get f() {
-    return this.formulario.controls;
-  }
+  readonly loginForm = form(
+    this.modelo,
+    (f) => {
+      required(f.correo, { message: 'El correo es obligatorio.' });
+      email(f.correo, { message: 'Ingresa un correo válido.' });
+
+      required(f.clave, { message: 'La contraseña es obligatoria.' });
+      minLength(f.clave, 8, { message: 'Mínimo 8 caracteres.' });
+    },
+    {
+      submission: {
+        action: async () => {
+          this.iniciarSesion();
+        },
+      },
+    }
+  );
 
   iniciarSesion() {
-    if (this.formulario.invalid) {
-      this.formulario.markAllAsTouched();
-      return;
-    }
-
     this.cargando.set(true);
     this.mensaje.set('');
     this.error.set('');
 
-    const { correo, clave } = this.formulario.getRawValue();
+    const { correo, clave } = this.modelo();
 
     this.authService.login(correo, clave).subscribe({
       next: (res) => {
