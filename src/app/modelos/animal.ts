@@ -11,3 +11,16 @@ export interface Animal {
   estado?: 'disponible' | 'en_proceso' | 'adoptado';
   rescatista_id?: number | null;
 }
+
+export interface AnimalCreate {
+  nombre: string;
+  especie: 'Perro' | 'Gato';
+  edad: string;
+  tamano: 'Pequeño' | 'Mediano' | 'Grande';
+  caracter: string;
+  vacunado: boolean;
+  esterilizado: boolean;
+  foto: string;
+  estado?: 'disponible' | 'en_proceso' | 'adoptado';
+  rescatista_id?: number | null;
+}

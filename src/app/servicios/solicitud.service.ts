@@ -10,10 +10,13 @@ export class SolicitudService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8000/solicitudes';
 
-  getSolicitudes(estado?: string): Observable<Solicitud[]> {
+  getSolicitudes(filtro?: { estado?: string; rescatista_id?: number }): Observable<Solicitud[]> {
     let params = new HttpParams();
-    if (estado) {
-      params = params.set('estado', estado);
+    if (filtro?.estado) {
+      params = params.set('estado', filtro.estado);
+    }
+    if (filtro?.rescatista_id) {
+      params = params.set('rescatista_id', filtro.rescatista_id.toString());
     }
     return this.http.get<Solicitud[]>(this.apiUrl, { params });
   }

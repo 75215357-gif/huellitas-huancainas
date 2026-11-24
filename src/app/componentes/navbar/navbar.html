@@ -23,11 +23,31 @@
                 <li class="nav-item">
                     <a class="nav-link text-danger fw-semibold" routerLink="/denuncias" routerLinkActive="active">🚨 Reportar Caso</a>
                 </li>
+                @if (authService.usuarioActual()?.rol === 'rescatista' || authService.usuarioActual()?.rol === 'admin') {
+                    <li class="nav-item">
+                        <a class="nav-link text-primary fw-bold" routerLink="/panel-rescatista" routerLinkActive="active">📋 Panel Rescatista</a>
+                    </li>
+                }
+                @if (authService.usuarioActual()?.rol === 'admin') {
+                    <li class="nav-item">
+                        <a class="nav-link text-warning-emphasis fw-bold" routerLink="/panel-admin" routerLinkActive="active">🛡️ Panel Admin</a>
+                    </li>
+                }
             </ul>
 
             <!-- Botones de sesión o Usuario autenticado -->
             @if (authService.usuarioActual(); as usuario) {
                 <div class="d-flex align-items-center gap-3">
+                    @if (usuario.rol === 'admin') {
+                        <a routerLink="/panel-admin" class="btn btn-warning btn-sm fw-bold">
+                            🛡️ Panel Admin
+                        </a>
+                    }
+                    @if (usuario.rol === 'rescatista' || usuario.rol === 'admin') {
+                        <a routerLink="/panel-rescatista" class="btn btn-outline-primary btn-sm fw-semibold">
+                            📋 Gestionar Solicitudes
+                        </a>
+                    }
                     <span class="badge text-bg-warning px-3 py-2">
                         👤 {{ usuario.nombres }} ({{ usuario.rol }})
                     </span>

@@ -9,6 +9,8 @@ export interface Usuario {
   telefono: string;
   correo: string;
   rol: string;
+  estado_rescatista?: string;
+  fecha_registro?: string;
 }
 
 export interface AuthResponse {

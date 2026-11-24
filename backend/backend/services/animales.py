@@ -9,8 +9,19 @@ class AnimalService:
         self.repo = repo
         self.user_repo = user_repo
 
-    def listar(self, especie: Optional[str] = None, tamano: Optional[str] = None) -> List[Animal]:
-        return self.repo.listar_todos(especie=especie, tamano=tamano)
+    def listar(
+        self,
+        especie: Optional[str] = None,
+        tamano: Optional[str] = None,
+        rescatista_id: Optional[int] = None,
+        estado: Optional[str] = None
+    ) -> List[Animal]:
+        return self.repo.listar_todos(
+            especie=especie,
+            tamano=tamano,
+            rescatista_id=rescatista_id,
+            estado=estado
+        )
 
     def obtener_por_id(self, animal_id: int) -> Animal:
         animal = self.repo.obtener_por_id(animal_id)

@@ -1,6 +1,8 @@
+from pathlib import Path
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from backend.backend.apis.animales import router as animales_router
 from backend.backend.apis.auth import router as auth_router
@@ -26,6 +28,11 @@ app = FastAPI(
     description="API REST conectada a MySQL mediante pyodbc (Sin ORM) para adopción animal.",
     version="1.0.0"
 )
+
+# Servir archivos estáticos de fotos de animales si existen
+FOTOS_PATH = Path(__file__).resolve().parent.parent.parent / "public" / "fotos-animales"
+if FOTOS_PATH.exists():
+    app.mount("/fotos-animales", StaticFiles(directory=str(FOTOS_PATH)), name="fotos-animales")
 
 # Configurar CORS para permitir comunicación fluida con el frontend de Angular (localhost:4200)
 app.add_middleware(

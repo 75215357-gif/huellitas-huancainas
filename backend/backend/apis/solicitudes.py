@@ -6,8 +6,11 @@ from backend.backend.services.solicitudes import solicitud_service
 router = APIRouter(prefix="/solicitudes", tags=["Solicitudes"])
 
 @router.get("", response_model=List[Solicitud])
-def listar_solicitudes(estado: Optional[str] = Query(None)):
-    return solicitud_service.listar(estado=estado)
+def listar_solicitudes(
+    estado: Optional[str] = Query(None),
+    rescatista_id: Optional[int] = Query(None)
+):
+    return solicitud_service.listar(estado=estado, rescatista_id=rescatista_id)
 
 @router.get("/{solicitud_id}", response_model=Solicitud)
 def obtener_solicitud(solicitud_id: int = Path(...)):

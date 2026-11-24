@@ -7,6 +7,7 @@ class UsuarioBase(BaseModel):
     telefono: str = Field(..., pattern=r"^9\d{8}$", description="Celular peruano de 9 dígitos.", example="987654321")
     correo: str = Field(..., description="Correo electrónico.", example="ana@gmail.com")
     rol: Literal["adoptante", "rescatista", "admin"] = Field(default="adoptante", description="Rol del usuario.")
+    estado_rescatista: Optional[Literal["ninguno", "pendiente", "aprobado", "rechazado"]] = Field(default="ninguno", description="Estado de validación como rescatista.")
 
 class UsuarioCreate(UsuarioBase):
     clave: str = Field(..., min_length=8, description="Contraseña de la cuenta.")
@@ -16,9 +17,11 @@ class UsuarioUpdate(BaseModel):
     telefono: Optional[str] = Field(default=None, pattern=r"^9\d{8}$")
     correo: Optional[str] = None
     rol: Optional[Literal["adoptante", "rescatista", "admin"]] = None
+    estado_rescatista: Optional[Literal["ninguno", "pendiente", "aprobado", "rechazado"]] = None
     clave: Optional[str] = Field(default=None, min_length=8)
 
 class Usuario(UsuarioBase):
     id: int
+    fecha_registro: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

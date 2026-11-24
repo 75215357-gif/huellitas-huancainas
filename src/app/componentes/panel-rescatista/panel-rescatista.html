@@ -1,0 +1,989 @@
+<!-- Encabezado del Panel -->
+<section class="bg-primary text-white py-4 shadow-sm mb-4">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="fs-2">🐾</span>
+          <h1 class="h3 fw-bold mb-0">Panel de Gestión del Rescatista</h1>
+        </div>
+        <p class="mb-0 text-white-50">
+          Publica mascotas en adopción, evalúa solicitudes y atiende reportes de emergencia en Huancayo.
+        </p>
+      </div>
+
+      @if (authService.usuarioActual(); as usuario) {
+        <div class="bg-white bg-opacity-25 rounded-3 p-2 px-3 text-white">
+          <div class="small text-uppercase fw-semibold tracking-wide text-white-50">Sesión Activa</div>
+          <div class="fw-bold">{{ usuario.nombres }}</div>
+          <span class="badge text-bg-warning text-dark">{{ usuario.rol | uppercase }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<div class="container pb-5">
+  <!-- Validación de permisos -->
+  @if (!esRescatistaOAdmin()) {
+    <div class="card border-0 shadow-sm text-center py-5 my-4">
+      <div class="card-body">
+        <div class="display-3 text-warning mb-3">🔒</div>
+        <h2 class="h4 fw-bold">Acceso Exclusivo para Rescatistas</h2>
+        <p class="text-muted mx-auto" style="max-width: 500px;">
+          Esta sección está reservada para albergues, rescatistas independientes y administradores de Huellitas Huancaínas.
+        </p>
+        <div class="mt-4 d-flex justify-content-center gap-2">
+          <a routerLink="/iniciar-sesion" class="btn btn-primary px-4">Iniciar Sesión</a>
+          <a routerLink="/" class="btn btn-outline-secondary px-4">Ir al Inicio</a>
+        </div>
+      </div>
+    </div>
+  } @else {
+
+    <!-- Alertas globales de éxito y error -->
+    @if (mensajeExito()) {
+      <div class="alert alert-success alert-dismissible fade show shadow-sm d-flex align-items-center gap-2" role="alert">
+        <span class="fs-5">✅</span>
+        <div class="flex-grow-1">{{ mensajeExito() }}</div>
+        <button type="button" class="btn-close" (click)="mensajeExito.set('')" aria-label="Close"></button>
+      </div>
+    }
+
+    @if (errorMsg()) {
+      <div class="alert alert-danger alert-dismissible fade show shadow-sm d-flex align-items-center gap-2" role="alert">
+        <span class="fs-5">⚠️</span>
+        <div class="flex-grow-1">{{ errorMsg() }}</div>
+        <button type="button" class="btn-close" (click)="errorMsg.set('')" aria-label="Close"></button>
+      </div>
+    }
+
+    <!-- Selector de Pestañas / Módulos -->
+    <ul class="nav nav-pills nav-fill mb-4 bg-white p-2 rounded-3 shadow-sm border gap-1">
+      <li class="nav-item">
+        <button
+          class="nav-link fw-bold py-2 px-3 d-flex align-items-center justify-content-center gap-2"
+          [class.active]="pestanaActiva() === 'solicitudes'"
+          (click)="pestanaActiva.set('solicitudes')"
+        >
+          <span>📥 Solicitudes de Adopción</span>
+          <span class="badge rounded-pill" [ngClass]="pestanaActiva() === 'solicitudes' ? 'text-bg-light text-primary' : 'text-bg-primary'">
+            {{ solicitudes().length }}
+          </span>
+          @if (conteoPendientes() > 0) {
+            <span class="badge text-bg-warning text-dark">
+              {{ conteoPendientes() }} por evaluar
+            </span>
+          }
+        </button>
+      </li>
+
+      <li class="nav-item">
+        <button
+          class="nav-link fw-bold py-2 px-3 d-flex align-items-center justify-content-center gap-2"
+          [class.active]="pestanaActiva() === 'animales'"
+          (click)="pestanaActiva.set('animales')"
+        >
+          <span>🐾 Publicar y Mis Animales</span>
+          <span class="badge rounded-pill" [ngClass]="pestanaActiva() === 'animales' ? 'text-bg-light text-primary' : 'text-bg-dark'">
+            {{ misAnimales().length }}
+          </span>
+        </button>
+      </li>
+
+      <li class="nav-item">
+        <button
+          class="nav-link fw-bold py-2 px-3 d-flex align-items-center justify-content-center gap-2"
+          [class.active]="pestanaActiva() === 'reportes'"
+          (click)="pestanaActiva.set('reportes')"
+        >
+          <span>🚨 Casos de Rescate</span>
+          <span class="badge rounded-pill" [ngClass]="pestanaActiva() === 'reportes' ? 'text-bg-light text-primary' : 'text-bg-danger'">
+            {{ denuncias().length }}
+          </span>
+          @if (conteoReportesPendientes() > 0) {
+            <span class="badge text-bg-danger">
+              {{ conteoReportesPendientes() }} urgentes
+            </span>
+          }
+        </button>
+      </li>
+    </ul>
+
+    <!-- ============================================== -->
+    <!-- PESTAÑA 1: SOLICITUDES DE ADOPCIÓN             -->
+    <!-- ============================================== -->
+    @if (pestanaActiva() === 'solicitudes') {
+
+      <!-- Tarjetas de métricas rápidas -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm bg-light text-center p-3">
+            <div class="text-muted small fw-semibold">TOTAL SOLICITUDES</div>
+            <div class="fs-2 fw-bold text-dark">{{ solicitudes().length }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm border-start border-4 border-warning bg-warning-subtle text-center p-3">
+            <div class="text-warning-emphasis small fw-semibold">PENDIENTES</div>
+            <div class="fs-2 fw-bold text-warning-emphasis">{{ conteoPendientes() }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm border-start border-4 border-success bg-success-subtle text-center p-3">
+            <div class="text-success small fw-semibold">APROBADAS</div>
+            <div class="fs-2 fw-bold text-success">{{ conteoAprobadas() }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm border-start border-4 border-danger bg-danger-subtle text-center p-3">
+            <div class="text-danger small fw-semibold">RECHAZADAS</div>
+            <div class="fs-2 fw-bold text-danger">{{ conteoRechazadas() }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros y Búsqueda -->
+      <div class="card border-0 shadow-sm p-3 mb-4">
+        <div class="row g-3 align-items-center">
+          <!-- Búsqueda -->
+          <div class="col-12 col-md-5">
+            <div class="input-group">
+              <span class="input-group-text bg-white">🔍</span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Buscar por mascota, adoptante o DNI..."
+                [(ngModel)]="busquedaSolicitud"
+              />
+              @if (busquedaSolicitud()) {
+                <button class="btn btn-outline-secondary" (click)="busquedaSolicitud.set('')">✕</button>
+              }
+            </div>
+          </div>
+
+          <!-- Filtro por Estado -->
+          <div class="col-12 col-md-4">
+            <div class="btn-group w-100" role="group">
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                [class.active]="filtroEstadoSolicitud() === 'todas'"
+                (click)="filtroEstadoSolicitud.set('todas')"
+              >
+                Todas
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-warning btn-sm"
+                [class.active]="filtroEstadoSolicitud() === 'pendiente'"
+                (click)="filtroEstadoSolicitud.set('pendiente')"
+              >
+                Pendientes
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-success btn-sm"
+                [class.active]="filtroEstadoSolicitud() === 'aprobada'"
+                (click)="filtroEstadoSolicitud.set('aprobada')"
+              >
+                Aprobadas
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-danger btn-sm"
+                [class.active]="filtroEstadoSolicitud() === 'rechazada'"
+                (click)="filtroEstadoSolicitud.set('rechazada')"
+              >
+                Rechazadas
+              </button>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-3 d-flex justify-content-md-end gap-2">
+            <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1" (click)="cargarSolicitudes()" title="Recargar">
+              🔄 Actualizar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Solicitudes -->
+      @if (cargandoSolicitudes()) {
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="text-muted mt-2">Cargando solicitudes de adopción...</p>
+        </div>
+      } @else {
+        <div class="vstack gap-3">
+          @for (s of solicitudesFiltradas(); track s.id) {
+            <div class="card shadow-sm border-0 border-start border-5" [ngClass]="{
+              'border-warning': s.estado === 'pendiente',
+              'border-success': s.estado === 'aprobada',
+              'border-danger': s.estado === 'rechazada'
+            }">
+              <div class="card-body p-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2 mb-3 pb-2 border-bottom">
+                  <div>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="badge" [ngClass]="{
+                        'text-bg-warning': s.estado === 'pendiente',
+                        'text-bg-success': s.estado === 'aprobada',
+                        'text-bg-danger': s.estado === 'rechazada'
+                      }">
+                        {{ s.estado === 'pendiente' ? '⏳ PENDIENTE DE EVALUACIÓN' : (s.estado === 'aprobada' ? '✅ ADOPCIÓN APROBADA' : '❌ SOLICITUD RECHAZADA') }}
+                      </span>
+                      <span class="text-muted small">Solicitud #{{ s.id }}</span>
+                    </div>
+                  </div>
+                  @if (s.fecha_solicitud) {
+                    <div class="text-muted small">
+                      📅 Fecha: <strong>{{ s.fecha_solicitud }}</strong>
+                    </div>
+                  }
+                </div>
+
+                <div class="row g-4">
+                  <!-- Info del Animal -->
+                  <div class="col-12 col-md-4 border-md-end">
+                    <div class="d-flex gap-3 align-items-center">
+                      <img
+                        [src]="s.animal_foto || 'http://localhost:8000/fotos-animales/toby.jpg'"
+                        [alt]="s.animal_nombre"
+                        class="rounded-3 object-fit-cover shadow-sm"
+                        style="width: 80px; height: 80px;"
+                      />
+                      <div>
+                        <h5 class="fw-bold mb-1 text-dark">{{ s.animal_nombre || 'Mascota #' + s.animal_id }}</h5>
+                        <span class="badge text-bg-light border mb-2">{{ s.animal_especie || 'Mascota' }}</span>
+                        <div>
+                          <a [routerLink]="['/animales', s.animal_id]" target="_blank" class="small text-decoration-none text-primary">
+                            🔗 Ver ficha del animal
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Info del Adoptante -->
+                  <div class="col-12 col-md-4">
+                    <h6 class="text-muted text-uppercase small fw-bold mb-2">👤 Datos del Solicitante</h6>
+                    <div class="fw-bold text-dark fs-6">{{ s.adoptante_nombres || 'Adoptante #' + s.adoptante_id }}</div>
+                    @if (s.adoptante_dni) {
+                      <div class="small text-muted">DNI: <span class="font-monospace text-dark">{{ s.adoptante_dni }}</span></div>
+                    }
+                    @if (s.adoptante_correo) {
+                      <div class="small text-muted text-truncate">✉️ {{ s.adoptante_correo }}</div>
+                    }
+                    @if (s.adoptante_telefono) {
+                      <div class="small text-muted mt-1 d-flex align-items-center gap-2">
+                        <span>📞 {{ s.adoptante_telefono }}</span>
+                        <a
+                          [href]="'https://wa.me/' + formatearTelefonoParaWhatsApp(s.adoptante_telefono)"
+                          target="_blank"
+                          class="btn btn-outline-success btn-xs py-0 px-2 rounded-pill small"
+                          title="Contactar por WhatsApp"
+                        >
+                          💬 WhatsApp
+                        </a>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Mensaje de motivación -->
+                  <div class="col-12 col-md-4">
+                    <h6 class="text-muted text-uppercase small fw-bold mb-2">💬 Mensaje de Motivación</h6>
+                    <div class="p-2 bg-light rounded-2 small text-secondary fst-italic border">
+                      "{{ s.mensaje || 'No incluyó mensaje adicional.' }}"
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Acciones -->
+                <div class="mt-4 pt-3 border-top d-flex flex-wrap align-items-center justify-content-between gap-2">
+                  <div class="small text-muted">Acciones de resolución:</div>
+                  <div class="d-flex flex-wrap gap-2">
+                    @if (s.estado !== 'aprobada') {
+                      <button
+                        type="button"
+                        class="btn btn-success btn-sm fw-semibold d-flex align-items-center gap-1 shadow-sm"
+                        [disabled]="procesandoId() === s.id"
+                        (click)="cambiarEstadoSolicitud(s, 'aprobada')"
+                      >
+                        @if (procesandoId() === s.id) {
+                          <span class="spinner-border spinner-border-sm"></span>
+                        } @else {
+                          <span>✅ Aprobar Adopción</span>
+                        }
+                      </button>
+                    }
+                    @if (s.estado !== 'rechazada') {
+                      <button
+                        type="button"
+                        class="btn btn-outline-danger btn-sm fw-semibold d-flex align-items-center gap-1"
+                        [disabled]="procesandoId() === s.id"
+                        (click)="cambiarEstadoSolicitud(s, 'rechazada')"
+                      >
+                        @if (procesandoId() === s.id) {
+                          <span class="spinner-border spinner-border-sm"></span>
+                        } @else {
+                          <span>❌ Rechazar</span>
+                        }
+                      </button>
+                    }
+                    @if (s.estado !== 'pendiente') {
+                      <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm"
+                        [disabled]="procesandoId() === s.id"
+                        (click)="cambiarEstadoSolicitud(s, 'pendiente')"
+                      >
+                        🔄 Dejar en Pendiente
+                      </button>
+                    }
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          } @empty {
+            <div class="card border-0 shadow-sm text-center py-5">
+              <div class="card-body">
+                <p class="fs-1 mb-2">📭</p>
+                <h5 class="fw-bold">No se encontraron solicitudes</h5>
+                <p class="text-muted mb-0">No hay solicitudes registradas con los filtros actuales.</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- ============================================== -->
+    <!-- PESTAÑA 2: PUBLICAR Y GESTIONAR ANIMALES       -->
+    <!-- ============================================== -->
+    @if (pestanaActiva() === 'animales') {
+
+      <!-- Botón de apertura del formulario y resumen -->
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+          <h4 class="fw-bold mb-1">Mascotas en Adopción bajo tu Cuidado</h4>
+          <p class="text-muted small mb-0">
+            Publica nuevos perritos o gatitos rescatados para que los adoptantes de Huancayo puedan postular.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="btn fw-bold shadow-sm d-flex align-items-center gap-2"
+          [ngClass]="mostrandoFormulario() ? 'btn-outline-danger' : 'btn-success'"
+          (click)="mostrandoFormulario.set(!mostrandoFormulario())"
+        >
+          @if (mostrandoFormulario()) {
+            <span>✕ Cancelar Registro</span>
+          } @else {
+            <span>➕ Publicar Nuevo Animal</span>
+          }
+        </button>
+      </div>
+
+      <!-- Formulario para publicar nuevo animal -->
+      @if (mostrandoFormulario()) {
+        <div class="card shadow-sm border-0 border-top border-4 border-success mb-4">
+          <div class="card-body p-4">
+            <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
+              <span>🐶</span> Ficha de Publicación de Mascota
+            </h5>
+
+            <form (ngSubmit)="publicarMascota()" class="row g-3">
+              <!-- Nombre -->
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold">Nombre del animal *</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Ej. Toby, Canelita, Peluso"
+                  [(ngModel)]="nuevoAnimal().nombre"
+                  name="nombre"
+                  required
+                />
+              </div>
+
+              <!-- Especie -->
+              <div class="col-12 col-md-3">
+                <label class="form-label fw-semibold">Especie *</label>
+                <select class="form-select" [(ngModel)]="nuevoAnimal().especie" name="especie">
+                  <option value="Perro">🐶 Perro</option>
+                  <option value="Gato">🐱 Gato</option>
+                </select>
+              </div>
+
+              <!-- Tamaño -->
+              <div class="col-12 col-md-3">
+                <label class="form-label fw-semibold">Tamaño *</label>
+                <select class="form-select" [(ngModel)]="nuevoAnimal().tamano" name="tamano">
+                  <option value="Pequeño">Pequeño</option>
+                  <option value="Mediano">Mediano</option>
+                  <option value="Grande">Grande</option>
+                </select>
+              </div>
+
+              <!-- Edad -->
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold">Edad aproximada *</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Ej. 3 meses, 1 año, 2 años y medio"
+                  [(ngModel)]="nuevoAnimal().edad"
+                  name="edad"
+                  required
+                />
+              </div>
+
+              <!-- Estado de Salud (Vacunado / Esterilizado) -->
+              <div class="col-12 col-md-6 d-flex align-items-center gap-4 pt-3">
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="checkVacunado"
+                    [(ngModel)]="nuevoAnimal().vacunado"
+                    name="vacunado"
+                  />
+                  <label class="form-check-label fw-semibold" for="checkVacunado">💉 Vacunado</label>
+                </div>
+
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="checkEsterilizado"
+                    [(ngModel)]="nuevoAnimal().esterilizado"
+                    name="esterilizado"
+                  />
+                  <label class="form-check-label fw-semibold" for="checkEsterilizado">✂️ Esterilizado</label>
+                </div>
+              </div>
+
+              <!-- Carácter / Temperamento -->
+              <div class="col-12">
+                <label class="form-label fw-semibold">Carácter y Temperamento *</label>
+                <textarea
+                  class="form-control"
+                  rows="2"
+                  placeholder="Ej. Juguetón, sociable con niños y otros perros, obediente y tranquilo en casa..."
+                  [(ngModel)]="nuevoAnimal().caracter"
+                  name="caracter"
+                  required
+                ></textarea>
+              </div>
+
+              <!-- Foto con Subida / Drag & Drop -->
+              <div class="col-12">
+                <label class="form-label fw-semibold">Fotografía de la mascota *</label>
+
+                <!-- Zona de Drag & Drop y Subida -->
+                <div
+                  class="dropzone-area p-4 text-center rounded-3 border-2 border-dashed position-relative"
+                  [class.dragover]="arrastrandoArchivo()"
+                  (dragover)="onDragOver($event)"
+                  (dragleave)="onDragLeave($event)"
+                  (drop)="onFileDrop($event)"
+                  (click)="fileInput.click()"
+                  role="button"
+                  tabindex="0"
+                >
+                  <input
+                    #fileInput
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    class="d-none"
+                    (change)="onFileSelected($event)"
+                  />
+
+                  @if (subiendoFoto()) {
+                    <div class="py-3">
+                      <div class="spinner-border text-success" role="status"></div>
+                      <p class="text-muted small mt-2 mb-0">Subiendo y procesando imagen...</p>
+                    </div>
+                  } @else if (nuevoAnimal().foto) {
+                    <div class="d-flex flex-column align-items-center">
+                      <div class="position-relative mb-2">
+                        <img
+                          [src]="nuevoAnimal().foto"
+                          alt="Vista previa"
+                          class="rounded-3 shadow-sm object-fit-cover border"
+                          style="width: 140px; height: 140px;"
+                        />
+                        <span class="badge text-bg-success position-absolute bottom-0 end-0 m-1">✓ Foto lista</span>
+                      </div>
+                      <div class="fw-semibold text-dark small mb-1">
+                        📸 Imagen seleccionada (haz clic o arrastra otra si deseas cambiarla)
+                      </div>
+                      <button
+                        type="button"
+                        class="btn btn-outline-danger btn-xs mt-1"
+                        (click)="$event.stopPropagation(); limpiarFoto()"
+                      >
+                        ✕ Quitar foto
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="py-3">
+                      <div class="fs-1 text-success mb-2">📥</div>
+                      <h6 class="fw-bold text-dark mb-1">Arrastra y suelta aquí la foto del animal</h6>
+                      <p class="text-muted small mb-3">o haz clic en esta área para elegir una imagen desde tu dispositivo (JPG, PNG, WEBP)</p>
+                      <button type="button" class="btn btn-outline-success btn-sm px-3" (click)="$event.stopPropagation(); fileInput.click()">
+                        📂 Examinar archivo
+                      </button>
+                    </div>
+                  }
+                </div>
+
+                <!-- Selector rápido de fotos predeterminadas -->
+                <div class="mt-2 d-flex flex-wrap align-items-center gap-1">
+                  <span class="small text-muted me-1">O elige una foto rápida del albergue:</span>
+                  @for (fp of fotosPredeterminadas; track fp.url) {
+                    <button
+                      type="button"
+                      class="btn btn-outline-secondary btn-xs py-0 px-2 rounded-pill"
+                      (click)="seleccionarFoto(fp.url)"
+                    >
+                      {{ fp.nombre }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Botón Submit -->
+              <div class="col-12 pt-3 border-top d-flex justify-content-end gap-2">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  (click)="mostrandoFormulario.set(false)"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-success fw-bold px-4"
+                  [disabled]="guardandoAnimal()"
+                >
+                  @if (guardandoAnimal()) {
+                    <span class="spinner-border spinner-border-sm me-1"></span> Publicando...
+                  } @else {
+                    🐾 Publicar Mascota
+                  }
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
+
+      <!-- Métricas rápidas de animales -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm bg-light text-center p-3">
+            <div class="text-muted small fw-semibold">TOTAL PUBLICADOS</div>
+            <div class="fs-2 fw-bold text-dark">{{ misAnimales().length }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm border-start border-4 border-success bg-success-subtle text-center p-3">
+            <div class="text-success small fw-semibold">DISPONIBLES</div>
+            <div class="fs-2 fw-bold text-success">{{ conteoAnimalesDisponibles() }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm border-start border-4 border-warning bg-warning-subtle text-center p-3">
+            <div class="text-warning-emphasis small fw-semibold">EN PROCESO</div>
+            <div class="fs-2 fw-bold text-warning-emphasis">{{ conteoAnimalesEnProceso() }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm border-start border-4 border-info bg-info-subtle text-center p-3">
+            <div class="text-info small fw-semibold">ADOPTADOS</div>
+            <div class="fs-2 fw-bold text-info">{{ conteoAnimalesAdoptados() }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtro y buscador de animales -->
+      <div class="card border-0 shadow-sm p-3 mb-4">
+        <div class="row g-3 align-items-center">
+          <div class="col-12 col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-white">🔍</span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Buscar por nombre, especie o carácter..."
+                [(ngModel)]="busquedaAnimal"
+              />
+              @if (busquedaAnimal()) {
+                <button class="btn btn-outline-secondary" (click)="busquedaAnimal.set('')">✕</button>
+              }
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="btn-group w-100" role="group">
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                [class.active]="filtroEstadoAnimal() === 'todos'"
+                (click)="filtroEstadoAnimal.set('todos')"
+              >
+                Todos
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-success btn-sm"
+                [class.active]="filtroEstadoAnimal() === 'disponible'"
+                (click)="filtroEstadoAnimal.set('disponible')"
+              >
+                Disponibles
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-warning btn-sm"
+                [class.active]="filtroEstadoAnimal() === 'en_proceso'"
+                (click)="filtroEstadoAnimal.set('en_proceso')"
+              >
+                En proceso
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-info btn-sm"
+                [class.active]="filtroEstadoAnimal() === 'adoptado'"
+                (click)="filtroEstadoAnimal.set('adoptado')"
+              >
+                Adoptados
+              </button>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-2 d-flex justify-content-md-end">
+            <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1" (click)="cargarMisAnimales()">
+              🔄 Actualizar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid de Animales -->
+      @if (cargandoAnimales()) {
+        <div class="text-center py-5">
+          <div class="spinner-border text-success" role="status"></div>
+          <p class="text-muted mt-2">Cargando tus animales registrados...</p>
+        </div>
+      } @else {
+        <div class="row g-4">
+          @for (a of animalesFiltrados(); track a.id) {
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card shadow-sm border-0 h-100 overflow-hidden">
+                <div class="position-relative">
+                  <img
+                    [src]="a.foto"
+                    [alt]="a.nombre"
+                    class="card-img-top object-fit-cover"
+                    style="height: 180px;"
+                  />
+                  <span
+                    class="badge position-absolute top-0 end-0 m-2 shadow-sm"
+                    [ngClass]="{
+                      'text-bg-success': a.estado === 'disponible',
+                      'text-bg-warning text-dark': a.estado === 'en_proceso',
+                      'text-bg-info text-dark': a.estado === 'adoptado'
+                    }"
+                  >
+                    {{ a.estado === 'disponible' ? '✅ Disponible' : (a.estado === 'en_proceso' ? '⏳ En proceso' : '🎉 Adoptado') }}
+                  </span>
+                </div>
+
+                <div class="card-body p-3 d-flex flex-column">
+                  <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title fw-bold text-dark mb-0">{{ a.nombre }}</h5>
+                    <span class="badge text-bg-light border">{{ a.especie }} • {{ a.tamano }}</span>
+                  </div>
+
+                  <p class="card-text text-muted small mb-2">
+                    🎂 <strong>Edad:</strong> {{ a.edad }}
+                  </p>
+                  <p class="card-text text-secondary small flex-grow-1 mb-3">
+                    {{ a.caracter }}
+                  </p>
+
+                  <div class="d-flex gap-2 mb-3">
+                    @if (a.vacunado) {
+                      <span class="badge text-bg-success-subtle text-success border border-success-subtle small">💉 Vacunado</span>
+                    }
+                    @if (a.esterilizado) {
+                      <span class="badge text-bg-info-subtle text-info-emphasis border border-info-subtle small">✂️ Esterilizado</span>
+                    }
+                  </div>
+
+                  <!-- Botones de Acción sobre la Mascota -->
+                  <div class="pt-2 border-top d-flex flex-wrap justify-content-between align-items-center gap-1">
+                    <div class="btn-group btn-group-sm">
+                      <button
+                        type="button"
+                        class="btn btn-outline-success btn-xs"
+                        [class.active]="a.estado === 'disponible'"
+                        [disabled]="procesandoId() === a.id"
+                        (click)="cambiarEstadoAnimal(a, 'disponible')"
+                        title="Marcar como Disponible"
+                      >
+                        Disponible
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-warning btn-xs"
+                        [class.active]="a.estado === 'en_proceso'"
+                        [disabled]="procesandoId() === a.id"
+                        (click)="cambiarEstadoAnimal(a, 'en_proceso')"
+                        title="Marcar como En Proceso de adopción"
+                      >
+                        En proceso
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-outline-info btn-xs"
+                        [class.active]="a.estado === 'adoptado'"
+                        [disabled]="procesandoId() === a.id"
+                        (click)="cambiarEstadoAnimal(a, 'adoptado')"
+                        title="Marcar como Adoptado"
+                      >
+                        Adoptado
+                      </button>
+                    </div>
+
+                    <div class="d-flex gap-1">
+                      <a [routerLink]="['/animales', a.id]" target="_blank" class="btn btn-outline-primary btn-sm py-0 px-2" title="Ver perfil público">
+                        👁️
+                      </a>
+                      <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" (click)="eliminarAnimal(a)" title="Eliminar mascota">
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div class="col-12">
+              <div class="card border-0 shadow-sm text-center py-5">
+                <div class="card-body">
+                  <div class="fs-1 mb-2">🐾</div>
+                  <h5 class="fw-bold">No se encontraron mascotas</h5>
+                  <p class="text-muted mb-3">No tienes animales registrados con los filtros seleccionados.</p>
+                  <button class="btn btn-success" (click)="mostrandoFormulario.set(true)">
+                    ➕ Publicar tu primer rescatado
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- ============================================== -->
+    <!-- PESTAÑA 3: SEGUIMIENTO DE REPORTES / CASOS     -->
+    <!-- ============================================== -->
+    @if (pestanaActiva() === 'reportes') {
+
+      <!-- Tarjetas de métricas de reportes -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm bg-light text-center p-3">
+            <div class="text-muted small fw-semibold">TOTAL CASOS</div>
+            <div class="fs-2 fw-bold text-dark">{{ denuncias().length }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm border-start border-4 border-warning bg-warning-subtle text-center p-3">
+            <div class="text-warning-emphasis small fw-semibold">POR ATENDER (PENDIENTES)</div>
+            <div class="fs-2 fw-bold text-warning-emphasis">{{ conteoReportesPendientes() }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm border-start border-4 border-info bg-info-subtle text-center p-3">
+            <div class="text-info small fw-semibold">EN REVISIÓN / EN PROCESO</div>
+            <div class="fs-2 fw-bold text-info">{{ conteoReportesEnRevision() }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card border-0 shadow-sm border-start border-4 border-success bg-success-subtle text-center p-3">
+            <div class="text-success small fw-semibold">ATENDIDOS / RESCATADOS</div>
+            <div class="fs-2 fw-bold text-success">{{ conteoReportesAtendidas() }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtros de Reportes -->
+      <div class="card border-0 shadow-sm p-3 mb-4">
+        <div class="row g-3 align-items-center">
+          <div class="col-12 col-md-6">
+            <div class="input-group">
+              <span class="input-group-text bg-white">🔍</span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Buscar caso por título, ubicación o detalle..."
+                [(ngModel)]="busquedaReporte"
+              />
+              @if (busquedaReporte()) {
+                <button class="btn btn-outline-secondary" (click)="busquedaReporte.set('')">✕</button>
+              }
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="btn-group w-100" role="group">
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                [class.active]="filtroEstadoReporte() === 'todas'"
+                (click)="filtroEstadoReporte.set('todas')"
+              >
+                Todos
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-warning btn-sm"
+                [class.active]="filtroEstadoReporte() === 'pendiente'"
+                (click)="filtroEstadoReporte.set('pendiente')"
+              >
+                Pendientes
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-info btn-sm"
+                [class.active]="filtroEstadoReporte() === 'en_revision'"
+                (click)="filtroEstadoReporte.set('en_revision')"
+              >
+                En revisión
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-success btn-sm"
+                [class.active]="filtroEstadoReporte() === 'atendida'"
+                (click)="filtroEstadoReporte.set('atendida')"
+              >
+                Atendidas
+              </button>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-2 d-flex justify-content-md-end">
+            <button class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1" (click)="cargarDenuncias()">
+              🔄 Actualizar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Listado de Casos / Denuncias -->
+      @if (cargandoDenuncias()) {
+        <div class="text-center py-5">
+          <div class="spinner-border text-danger" role="status"></div>
+          <p class="text-muted mt-2">Cargando reportes comunitarios...</p>
+        </div>
+      } @else {
+        <div class="vstack gap-3">
+          @for (d of denunciasFiltradas(); track d.id) {
+            <div class="card shadow-sm border-0 border-start border-5" [ngClass]="{
+              'border-warning': d.estado === 'pendiente',
+              'border-info': d.estado === 'en_revision',
+              'border-success': d.estado === 'atendida'
+            }">
+              <div class="card-body p-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2 mb-2">
+                  <div>
+                    <h5 class="fw-bold text-dark mb-1">{{ d.titulo }}</h5>
+                    <div class="text-danger fw-semibold small mb-2">
+                      📍 Ubicación: {{ d.ubicacion }}
+                    </div>
+                  </div>
+                  <span class="badge fs-6" [ngClass]="{
+                    'text-bg-warning': d.estado === 'pendiente',
+                    'text-bg-info': d.estado === 'en_revision',
+                    'text-bg-success': d.estado === 'atendida'
+                  }">
+                    {{ d.estado === 'en_revision' ? '🔍 En revisión' : (d.estado === 'atendida' ? '✅ Atendida' : '⏳ Pendiente') }}
+                  </span>
+                </div>
+
+                <p class="text-secondary mb-3">{{ d.descripcion }}</p>
+
+                @if (d.contacto) {
+                  <div class="p-2 bg-light rounded-2 small d-inline-flex align-items-center gap-2 mb-3 border">
+                    <span>📞 Contacto del informante: <strong>{{ d.contacto }}</strong></span>
+                    <a
+                      [href]="'https://wa.me/' + formatearTelefonoParaWhatsApp(d.contacto)"
+                      target="_blank"
+                      class="btn btn-outline-success btn-xs py-0 px-2 rounded-pill small"
+                    >
+                      💬 WhatsApp
+                    </a>
+                  </div>
+                }
+
+                <!-- Control de Cambio de Estado del Reporte -->
+                <div class="pt-3 border-top d-flex flex-wrap justify-content-between align-items-center gap-2">
+                  <div class="small text-muted">Cambiar estado del caso:</div>
+                  <div class="d-flex flex-wrap gap-2">
+                    @if (d.estado !== 'en_revision') {
+                      <button
+                        type="button"
+                        class="btn btn-info btn-sm text-white fw-semibold"
+                        [disabled]="procesandoId() === d.id"
+                        (click)="cambiarEstadoReporte(d, 'en_revision')"
+                      >
+                        🔍 Tomar caso / En revisión
+                      </button>
+                    }
+                    @if (d.estado !== 'atendida') {
+                      <button
+                        type="button"
+                        class="btn btn-success btn-sm fw-semibold"
+                        [disabled]="procesandoId() === d.id"
+                        (click)="cambiarEstadoReporte(d, 'atendida')"
+                      >
+                        ✅ Marcar como Atendida
+                      </button>
+                    }
+                    @if (d.estado !== 'pendiente') {
+                      <button
+                        type="button"
+                        class="btn btn-outline-warning btn-sm"
+                        [disabled]="procesandoId() === d.id"
+                        (click)="cambiarEstadoReporte(d, 'pendiente')"
+                      >
+                        ⏳ Reabrir / Pendiente
+                      </button>
+                    }
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          } @empty {
+            <div class="card border-0 shadow-sm text-center py-5">
+              <div class="card-body">
+                <p class="fs-1 mb-2">🐾</p>
+                <h5 class="fw-bold">No se encontraron casos</h5>
+                <p class="text-muted mb-0">No hay reportes de maltrato o rescate con este filtro.</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+  }
+</div>

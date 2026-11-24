@@ -2,10 +2,26 @@ from typing import List, Optional
 from backend.backend.database import get_db_cursor, row_to_dict, rows_to_dicts
 from backend.backend.schemas.animales import Animal, AnimalCreate, AnimalUpdate
 
+def normalizar_foto_url(foto: Optional[str]) -> str:
+    """Asegura que las fotos servidas desde el backend utilicen la URL completa de FastAPI."""
+    if not foto:
+        return "http://localhost:8000/fotos-animales/toby.jpg"
+    if foto.startswith("http://") or foto.startswith("https://") or foto.startswith("data:"):
+        return foto
+    if foto.startswith("/"):
+        return f"http://localhost:8000{foto}"
+    return f"http://localhost:8000/{foto}"
+
 class AnimalRepository:
     """Acceso a datos de animales en MySQL mediante pyodbc (Sin ORM)."""
 
-    def listar_todos(self, especie: Optional[str] = None, tamano: Optional[str] = None) -> List[Animal]:
+    def listar_todos(
+        self,
+        especie: Optional[str] = None,
+        tamano: Optional[str] = None,
+        rescatista_id: Optional[int] = None,
+        estado: Optional[str] = None
+    ) -> List[Animal]:
         query = "SELECT id, nombre, especie, edad, tamano, caracter, vacunado, esterilizado, foto, estado, rescatista_id FROM animales WHERE 1=1"
         params = []
         if especie:
@@ -14,15 +30,22 @@ class AnimalRepository:
         if tamano:
             query += " AND tamano = ?"
             params.append(tamano)
-        query += " ORDER BY id ASC"
+        if rescatista_id:
+            query += " AND rescatista_id = ?"
+            params.append(rescatista_id)
+        if estado:
+            query += " AND estado = ?"
+            params.append(estado)
+        query += " ORDER BY id DESC"
 
         with get_db_cursor(commit=False) as cur:
             cur.execute(query, params)
             rows = rows_to_dicts(cur, cur.fetchall())
-            # Convertir 0/1 a booleanos
+            # Convertir 0/1 a booleanos y normalizar URL de la foto
             for r in rows:
                 r["vacunado"] = bool(r["vacunado"])
                 r["esterilizado"] = bool(r["esterilizado"])
+                r["foto"] = normalizar_foto_url(r.get("foto"))
             return [Animal(**r) for r in rows]
 
     def obtener_por_id(self, animal_id: int) -> Optional[Animal]:
@@ -34,6 +57,7 @@ class AnimalRepository:
                 return None
             row["vacunado"] = bool(row["vacunado"])
             row["esterilizado"] = bool(row["esterilizado"])
+            row["foto"] = normalizar_foto_url(row.get("foto"))
             return Animal(**row)
 
     def crear(self, data: AnimalCreate) -> Animal:

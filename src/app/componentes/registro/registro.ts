@@ -89,10 +89,14 @@ export class Registro {
     }).subscribe({
       next: (res) => {
         this.cargando.set(false);
-        this.mensaje.set(`¡Cuenta creada exitosamente para ${res.usuario.nombres}! Redirigiendo...`);
+        if (val.rol === 'rescatista') {
+          this.mensaje.set(`¡Cuenta creada! Tu solicitud para ser rescatista ha sido registrada y está en revisión por el administrador. Mientras tanto, puedes explorar como adoptante.`);
+        } else {
+          this.mensaje.set(`¡Cuenta creada exitosamente para ${res.usuario.nombres}! Redirigiendo...`);
+        }
         setTimeout(() => {
           this.router.navigate(['/animales']);
-        }, 1200);
+        }, 1600);
       },
       error: (err) => {
         this.cargando.set(false);

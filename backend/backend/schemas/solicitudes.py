@@ -17,5 +17,14 @@ class SolicitudUpdateEstado(BaseModel):
 
 class Solicitud(SolicitudBase):
     id: int
+    fecha_solicitud: Optional[str] = None
+    animal_nombre: Optional[str] = None
+    animal_especie: Optional[str] = None
+    animal_foto: Optional[str] = None
+    rescatista_id: Optional[int] = None
+    adoptante_nombres: Optional[str] = None
+    adoptante_correo: Optional[str] = None
+    adoptante_telefono: Optional[str] = None
+    adoptante_dni: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

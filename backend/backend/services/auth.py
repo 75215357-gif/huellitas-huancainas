@@ -19,7 +19,8 @@ class AuthService:
             nombres=row["nombres"],
             telefono=row["telefono"],
             correo=row["correo"],
-            rol=row["rol"]
+            rol=row["rol"],
+            estado_rescatista=row.get("estado_rescatista") or "ninguno"
         )
         token = f"token_{usuario.id}_{int(time.time())}"
         return AuthResponse(access_token=token, token_type="bearer", usuario=usuario)
@@ -30,12 +31,25 @@ class AuthService:
         if self.user_repo.obtener_por_dni(data.dni):
             raise UsuarioAlreadyExistsError("El DNI ya está registrado.")
 
+        # Si el usuario solicita ser rescatista, queda como adoptante con estado 'pendiente'
+        # hasta que un administrador lo verifique y apruebe en el Panel de Administrador.
+        if data.rol == "rescatista":
+            rol_asignado = "adoptante"
+            estado_rescatista = "pendiente"
+        elif data.rol == "admin":
+            rol_asignado = "admin"
+            estado_rescatista = "aprobado"
+        else:
+            rol_asignado = "adoptante"
+            estado_rescatista = "ninguno"
+
         usuario_create = UsuarioCreate(
             dni=data.dni,
             nombres=data.nombres,
             telefono=data.telefono,
             correo=data.correo,
-            rol=data.rol,
+            rol=rol_asignado,
+            estado_rescatista=estado_rescatista,
             clave=data.clave
         )
         nuevo_usuario = self.user_repo.crear(usuario_create)

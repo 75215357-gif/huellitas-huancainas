@@ -1,7 +1,14 @@
 <section class="bg-warning-subtle py-4">
-  <div class="container">
-    <h1 class="h2 fw-bold mb-1">Animales en adopción</h1>
-    <p class="mb-0 text-muted">Encuentra a tu nuevo compañero en Huancayo.</p>
+  <div class="container d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <h1 class="h2 fw-bold mb-1">Animales en adopción</h1>
+      <p class="mb-0 text-muted">Encuentra a tu nuevo compañero en Huancayo.</p>
+    </div>
+    @if (authService.usuarioActual()?.rol === 'rescatista' || authService.usuarioActual()?.rol === 'admin') {
+      <a routerLink="/panel-rescatista" [queryParams]="{ tab: 'animales' }" class="btn btn-warning fw-bold shadow-sm d-flex align-items-center gap-2">
+        <span>🐾 Publicar Mascota</span>
+      </a>
+    }
   </div>
 </section>
 

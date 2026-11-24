@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Animal } from '../../modelos/animal';
 import { AnimalService } from '../../servicios/animal.service';
+import { AuthService } from '../../servicios/auth.service';
 
 @Component({
   selector: 'app-listado-animales',
@@ -11,6 +12,7 @@ import { AnimalService } from '../../servicios/animal.service';
 })
 export class ListadoAnimales implements OnInit {
   private animalService = inject(AnimalService);
+  authService = inject(AuthService);
 
   cargando = signal(true);
   error = signal<string | null>(null);

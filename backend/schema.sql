@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     correo VARCHAR(150) NOT NULL UNIQUE,
     clave VARCHAR(255) NOT NULL,
     rol ENUM('adoptante', 'rescatista', 'admin') NOT NULL DEFAULT 'adoptante',
+    estado_rescatista ENUM('ninguno', 'pendiente', 'aprobado', 'rechazado') NOT NULL DEFAULT 'ninguno',
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -1,0 +1,37 @@
+.btn-xs {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+}
+
+.border-dashed {
+  border: 2px dashed #b9c2cc;
+  transition: all 0.2s ease-in-out;
+}
+
+.dropzone-area {
+  cursor: pointer;
+  background-color: #fafbfc;
+}
+
+.dropzone-area:hover,
+.dropzone-area.dragover {
+  border-color: #198754 !important;
+  background-color: #e8f5e9 !important;
+}
+
+.tracking-wide {
+  letter-spacing: 0.05em;
+}
+
+.border-md-end {
+  border-right: 1px solid var(--bs-border-color);
+}
+
+@media (max-width: 767.98px) {
+  .border-md-end {
+    border-right: none;
+    border-bottom: 1px solid var(--bs-border-color);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+  }
+}

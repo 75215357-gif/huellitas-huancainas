@@ -7,8 +7,8 @@ class UsuarioService:
     def __init__(self, repo: UsuarioRepository = usuario_repository):
         self.repo = repo
 
-    def listar(self) -> List[Usuario]:
-        return self.repo.listar_todos()
+    def listar(self, rol: Optional[str] = None, estado_rescatista: Optional[str] = None) -> List[Usuario]:
+        return self.repo.listar_todos(rol=rol, estado_rescatista=estado_rescatista)
 
     def obtener_por_id(self, user_id: int) -> Usuario:
         user = self.repo.obtener_por_id(user_id)

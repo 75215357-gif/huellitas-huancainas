@@ -1,0 +1,9 @@
+.tracking-wide {
+  letter-spacing: 0.05em;
+}
+
+.table th {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
